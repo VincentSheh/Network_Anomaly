@@ -23,8 +23,8 @@ type Flow struct {
 	LastTime  int64
 	Fin       bool
 
-	InitWinBytesBwd uint16 //1.39
-	InitWinBytesFwd uint16 //1.24
+	InitWinBytesBwd int64 //1.39
+	InitWinBytesFwd int64 //1.24
 
 	//Calculated Features
 	//Get BwdPacketStats()
@@ -94,24 +94,29 @@ func (f *Flow) AddPacket(packet Packet) {
 		if f.InitWinBytesBwd == 0 { //Recheck Definition
 			f.InitWinBytesBwd = packet.TCPWindow
 		}
-		if f.InitWinBytesFwd == 0 {
-			f.InitWinBytesFwd = packet.TCPWindow
-		}
 
 		//OUTBOUND PACKETS
 	} else {
 		f.FwdPackets = append(f.FwdPackets, packet)
+		if f.InitWinBytesFwd == 0 {
+			f.InitWinBytesFwd = packet.TCPWindow
+		}
 
 	}
 	f.Fin = f.GetFin(packet)
 
 }
 
-func (f Flow) GetBwdPacketStats() (int64, int64, int, float64, float64, int64) {
+func (f Flow) GetBwdPacketStats() (int64, int64, int, float64, float64, float64) {
+	if len(f.BwdPackets) == 0 {
+		return 0, 0, 0, 0, 0, 0
+	}
 	BwdPacketLengthMin := f.BwdPackets[0].Length
 	// max :=f.BwdPackets[0]
 	var BwdTotPacketLength int64 = 0
 	var BwdTotPackets int64 = 0
+	var BwdPacketRate float64 = 0
+
 	for _, pkt := range f.BwdPackets {
 		BwdTotPacketLength += int64(pkt.Length)
 		BwdTotPackets += 1
@@ -121,7 +126,11 @@ func (f Flow) GetBwdPacketStats() (int64, int64, int, float64, float64, int64) {
 	}
 	BwdPacketLengthMean := float64(BwdTotPacketLength) / float64(BwdTotPackets)
 	BwdPacketLengthStd := f.GetBwdPacketsStd(BwdTotPackets, BwdPacketLengthMean)
-	BwdPacketRate := BwdTotPacketLength / (f.LastTime - f.StartTime)
+	if f.LastTime == f.StartTime {
+		BwdPacketRate = 0
+	} else {
+		BwdPacketRate = float64(BwdTotPacketLength) / float64(f.LastTime-f.StartTime)
+	}
 
 	return BwdTotPacketLength, BwdTotPackets, BwdPacketLengthMin, BwdPacketLengthStd, BwdPacketLengthMean, BwdPacketRate
 }
@@ -230,7 +239,7 @@ func (f Flow) GetFullFeatures() map[string]string {
 		"BwdPacketLengthMin":  strconv.FormatUint(uint64(BwdPacketLengthMin), 10),
 		"BwdPacketLengthStd":  strconv.FormatFloat(BwdPacketLengthStd, 'f', -1, 64),
 		"BwdPacketLengthMean": strconv.FormatFloat(BwdPacketLengthMean, 'f', -1, 64),
-		"BwdPacketRate":       strconv.FormatInt(BwdPacketRate, 10),
+		"BwdPacketRate":       strconv.FormatFloat(BwdPacketRate, 'f', -1, 64),
 
 		"FwdHeaderLength": strconv.FormatInt(FwdHeaderLength, 10),
 		"FwdTotPackets":   strconv.FormatInt(FwdTotPackets, 10),
@@ -238,10 +247,10 @@ func (f Flow) GetFullFeatures() map[string]string {
 		"PacketLengthStd":   strconv.FormatFloat(PacketLengthStd, 'f', -1, 64),
 		"AveragePacketSize": strconv.FormatFloat(AveragePacketSize, 'f', -1, 64),
 		// "IdleMin":            strconv.FormatInt(IdleMin, 10),
-		"FlowIATMin":   strconv.FormatInt(FlowIATMin, 10),          // Assuming GetIATMin() is a method that computes this
-		"FlowIATMax":   strconv.FormatInt(FlowIATMax, 10),          // Assuming GetIATMax() is a method that computes this
-		"FlowIATTotal": strconv.FormatInt(FlowIATTotal, 10),        // Assuming GetIATTotal() is a method that computes this
-		"FlowDuration": strconv.FormatInt(f.GetFlowDuration(), 10), // Assuming GetFlowDuration() is a method that computes this
+		"FlowIATMin":   strconv.FormatInt(FlowIATMin, 10),
+		"FlowIATMax":   strconv.FormatInt(FlowIATMax, 10),
+		"FlowIATTotal": strconv.FormatInt(FlowIATTotal, 10),
+		"FlowDuration": strconv.FormatInt(f.GetFlowDuration(), 10),
 	}
 
 	return fullFeatures

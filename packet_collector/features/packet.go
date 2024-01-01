@@ -2,7 +2,6 @@ package features
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -15,14 +14,14 @@ type Packet struct {
 	Protocol     string
 	HeaderLength uint8
 	Length       int
-	TCPWindow    uint16
+	TCPWindow    int64
 	TCPFlags     []string //FIN, SYN, RST, PSH, ACK, URG, ECE, CWR, NS
 	ClientIp     string
 }
 
-func (p *Packet) Init(packet gopacket.Packet, direction bool) {
+func (p *Packet) Init(packet gopacket.Packet, direction bool, t int64) {
 	p.Packet = packet
-	p.Time = time.Now().UnixMicro()
+	p.Time = t
 	p.Direction = direction
 	p.HeaderLength, p.Protocol = p.GetIPData()
 	p.Length = p.GetPacketLength()
@@ -50,14 +49,18 @@ func (p Packet) GetIPData() (uint8, string) {
 
 }
 
-func (p Packet) GetTCPData() (uint16, []string) {
-	var TCPWindow uint16
+func (p Packet) GetTCPData() (int64, []string) {
+	var TCPWindow int64
 	var TCPFlags []string
 	//TCP Segment
 	tcpLayer := p.Packet.Layer(layers.LayerTypeTCP)
 	if tcpLayer != nil {
-		tcp, _ := tcpLayer.(*layers.TCP)
-		TCPWindow = tcp.Window
+		tcp, ok := tcpLayer.(*layers.TCP)
+		if !ok {
+			fmt.Println("Type assertion for TCP layer failed")
+			return 0, nil
+		}
+		TCPWindow = int64(tcp.Window)
 
 		if tcp.FIN {
 			TCPFlags = append(TCPFlags, "FIN")

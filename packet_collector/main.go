@@ -6,13 +6,14 @@ import (
 	"log"
 	"net"
 	"os"
+
 	"packet_collector/features"
 	"strings"
 	"time"
 
 	"github.com/google/gopacket"
-
-	"github.com/subgraph/go-nfnetlink/nfqueue"
+	"github.com/google/gopacket/pcap"
+	// "github.com/subgraph/go-nfnetlink/nfqueue"
 )
 
 func writeMapsToCSV(maps []map[string]string, filename string) {
@@ -80,6 +81,7 @@ func writeMapsToCSV(maps []map[string]string, filename string) {
 
 }
 func main() {
+	//Get Local IP
 	addrs_arr, _ := net.InterfaceAddrs()
 	var local_ip string
 	for _, addrs := range addrs_arr {
@@ -93,23 +95,32 @@ func main() {
 	}
 	fmt.Printf("Running Packet Filtering in %s \n", local_ip)
 
-	q := nfqueue.NewNFQueue(1)
-
-	ps, err := q.Open()
+	// Use Pcap to capture packets
+	handle, err := pcap.OpenLive("en0", 1600, true, pcap.BlockForever) //ifconfig to see active network interface
 	if err != nil {
-		fmt.Printf("Error opening NFQueue: %v\n", err)
-		os.Exit(1)
+		log.Fatal((err))
 	}
-	defer q.Close()
+	defer handle.Close()
+
+	var filter string = "tcp" //Add more e.g tcp and port 80
+	err = handle.SetBPFFilter(filter)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 
 	recFlows := make(map[gopacket.Flow]*features.Flow)
 	i := 0
-	for p := range ps {
+
+	//Start
+
+	for p := range packetSource.Packets() {
 		var t int64 = time.Now().UnixMilli()
 		// Get packet length
-		size := len(p.Packet.Data())
+		size := len(p.Data())
 		//Network Layer decoding
-		networkLayer := p.Packet.NetworkLayer()
+		networkLayer := p.NetworkLayer()
 		netFlow := networkLayer.NetworkFlow()
 		ipsrc, ipdst := netFlow.Endpoints()
 		// Get Direction
@@ -122,13 +133,13 @@ func main() {
 		fmt.Printf("Size of the packet is %d %v\n", size, direction)
 
 		//Transport Layer decoding
-		transportLayer := p.Packet.TransportLayer()
+		transportLayer := p.TransportLayer()
 		tcpsrc, tcpdst := transportLayer.TransportFlow().Endpoints()
 		fmt.Printf("TCP: %s:%s -> %s:%s\n",
 			ipsrc, tcpsrc, ipdst, tcpdst)
 
-		packet := new(features.Packet)   // Create a pointer to a new Packet instance
-		packet.Init(p.Packet, direction) // Call Init on the pointer
+		packet := new(features.Packet) // Create a pointer to a new Packet instance
+		packet.Init(p, direction, t)   // Call Init on the pointer
 		print("PACKET INFO-----\n ")
 		packet.PrintPacketInfo()
 
@@ -149,10 +160,8 @@ func main() {
 			recFlows[netFlow] = flow
 		}
 
-		p.Accept()
-
 		i += 1
-		if i == 10 {
+		if i == 200 {
 			var featuresList []map[string]string
 			for _, flow := range recFlows {
 				featuresList = append(featuresList, flow.GetFullFeatures())
@@ -163,3 +172,74 @@ func main() {
 	}
 
 }
+
+// q := nfqueue.NewNFQueue(1)
+// ps, err := q.Open()
+// if err != nil {
+// 	fmt.Printf("Error opening NFQueue: %v\n", err)
+// 	os.Exit(1)
+// }
+// defer q.Close()
+
+// recFlows := make(map[gopacket.Flow]*features.Flow)
+// i := 0
+
+// for p := range ps {
+// 	var t int64 = time.Now().UnixMilli()
+// 	// Get packet length
+// 	size := len(p.Packet.Data())
+// 	//Network Layer decoding
+// 	networkLayer := p.Packet.NetworkLayer()
+// 		netFlow := networkLayer.NetworkFlow()
+// 		ipsrc, ipdst := netFlow.Endpoints()
+// 		// Get Direction
+// 		var direction bool //In = 0, Out = 1
+// 		if ipdst.String() == local_ip {
+// 			direction = true
+// 		} else {
+// 			direction = false
+// 		}
+// 		fmt.Printf("Size of the packet is %d %v\n", size, direction)
+
+// 		//Transport Layer decoding
+// 		transportLayer := p.Packet.TransportLayer()
+// 		tcpsrc, tcpdst := transportLayer.TransportFlow().Endpoints()
+// 		fmt.Printf("TCP: %s:%s -> %s:%s\n",
+// 			ipsrc, tcpsrc, ipdst, tcpdst)
+
+// 		packet := new(features.Packet)   // Create a pointer to a new Packet instance
+// 		packet.Init(p.Packet, direction) // Call Init on the pointer
+// 		print("PACKET INFO-----\n ")
+// 		packet.PrintPacketInfo()
+
+// 		//Flow Creation or Add Packet to flow
+// 		if _, ok := recFlows[netFlow]; ok {
+// 			recFlows[netFlow].AddPacket(*packet)
+// 		} else {
+// 			flow := new(features.Flow)
+// 			flow.Init(
+// 				packet,
+// 				direction,
+// 				ipsrc.String(),
+// 				tcpsrc.String(),
+// 				ipdst.String(),
+// 				tcpdst.String(),
+// 				t,
+// 			)
+// 			recFlows[netFlow] = flow
+// 		}
+
+// 		p.Accept()
+
+// 		i += 1
+// 		if i == 10 {
+// 			var featuresList []map[string]string
+// 			for _, flow := range recFlows {
+// 				featuresList = append(featuresList, flow.GetFullFeatures())
+// 			}
+// 			writeMapsToCSV(featuresList, "output.csv")
+// 			break
+// 		}
+// 	}
+
+// }

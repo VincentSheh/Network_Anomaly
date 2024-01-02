@@ -1,13 +1,11 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
 	"log"
 	"net"
-	"os"
-
 	"packet_collector/features"
+	"packet_collector/utils"
 	"strings"
 	"time"
 
@@ -16,70 +14,11 @@ import (
 	// "github.com/subgraph/go-nfnetlink/nfqueue"
 )
 
-func writeMapsToCSV(maps []map[string]string, filename string) {
-	var file *os.File
-	var new error
-	if _, new = os.Stat(filename); new == nil {
-		fmt.Printf("File %s already exists. Not creating a new file.\n", filename)
-		file, _ = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-
-	} else {
-		fmt.Printf("File %s does not exist. Creating a new file.\n", filename)
-		file, _ = os.Create(filename)
-	}
-
-	defer file.Close()
-	writer := csv.NewWriter((file))
-	defer writer.Flush()
-
-	//Extract the header,
-	//the behavior of Go maps prevent users from having a predefined order of keys
-	// var header []string
-	// for key := range maps[0] {
-	// 	header = append(header, key)
-	// }
-	header := []string{
-		"Protocol",
-		"MyDevice_ip",
-		"MyDevice_port",
-		"Client_ip",
-		"Client_port",
-		"StartTime",
-		"LastTime",
-		"Fin",
-		"InitWinBytesBwd",
-		"InitWinBytesFwd",
-		"BwdTotPacketLength",
-		"BwdTotPackets",
-		"BwdPacketLengthMin",
-		"BwdPacketLengthStd",
-		"BwdPacketLengthMean",
-		"BwdPacketRate",
-		"FwdHeaderLength",
-		"FwdTotPackets",
-		"PacketLengthStd",
-		"AveragePacketSize",
-		"FlowIATMin",
-		"FlowIATMax",
-		"FlowIATTotal",
-		"FlowDuration",
-	}
-	if new != nil { //If file does not exist
-		writer.Write(header)
-	}
-
-	//Rest of the datas
-	for _, m := range maps {
-		var record []string
-		for _, key := range header {
-			record = append(record, m[key])
-		}
-		if err := writer.Write(record); err != nil {
-			log.Fatalf("Failed to write rows to file: %s", err)
-		}
-	}
-
+type BWInfo struct {
+	bw         string // black or white list
+	last_check time.Time
 }
+
 func main() {
 	//Get Local IP
 	addrs_arr, _ := net.InterfaceAddrs()
@@ -102,7 +41,7 @@ func main() {
 	}
 	defer handle.Close()
 
-	var filter string = "tcp" //Add more e.g tcp and port 80
+	var filter string = "tcp" //Add more e.g "tcp and port 80"
 	err = handle.SetBPFFilter(filter)
 	if err != nil {
 		log.Fatal(err)
@@ -112,7 +51,8 @@ func main() {
 
 	recFlows := make(map[gopacket.Flow]*features.Flow)
 	i := 0
-
+	// Initialize BWList (Seperate from recFlows because key is source address)
+	BWList := make(map[string]BWInfo)
 	//Start
 
 	for p := range packetSource.Packets() {
@@ -144,6 +84,7 @@ func main() {
 		packet.PrintPacketInfo()
 
 		//Flow Creation or Add Packet to flow
+		var flow *features.Flow
 		if _, ok := recFlows[netFlow]; ok {
 			recFlows[netFlow].AddPacket(*packet)
 		} else {
@@ -160,13 +101,54 @@ func main() {
 			recFlows[netFlow] = flow
 		}
 
+		// TODO6: Recheck WL / BL => Remove the WL from the BWList, Forward the BL to NFQueue?
+		key := flow.Client_ip + ":" + flow.Client_port
+		var isWL bool
+		if info, isExist := BWList[key]; isExist {
+			isWL = true
+			if time.Now().Sub(info.last_check) > Config.WLRecheckInterval {
+
+			}
+		}
+
+		// TODO1: Is Time ellapse (of BL/WL/unassigned) > threshold __DONE__
+		flowDuration := flow.GetFlowDuration()
+		if (flowDuration - recFlows[netFlow].LastTime) > Config.CheckInterval.Milliseconds() {
+			// TODO5: Check BWL: if WL skip inference __DONE__
+
+			// TODO2: Send to Detection Model
+			var isMalicious bool
+			// isMaliciousProb = PostDetection()
+			isMalicious = !isWL || Config.Seed.Intn(10) == 0 //If not in whitelist then perform inference
+
+			// TODO3-1: Add to BWL __DONE__
+			// TODO4: Process BWL => BL exec command line: iptables, __DONE__
+			if isMalicious {
+				BWList[key] = BWInfo{
+					bw:         "black", //true means black list
+					last_check: time.Now(),
+				}
+				utils.BlackListIP(flow.Client_ip, flow.Client_port)
+			} else { //Check if the duration is enough to be in WL
+				if flowDuration > Config.WLDurationThreshold.Milliseconds() {
+					BWList[key] = BWInfo{
+						bw:         "white", //true means black list
+						last_check: time.Now(),
+					}
+				}
+			}
+
+			// TODO3-2: Save to CSV
+
+		}
+
 		i += 1
 		if i == 200 {
 			var featuresList []map[string]string
 			for _, flow := range recFlows {
 				featuresList = append(featuresList, flow.GetFullFeatures())
 			}
-			writeMapsToCSV(featuresList, "output.csv")
+			utils.WriteMapsToCSV(featuresList, "output.csv")
 			break
 		}
 	}

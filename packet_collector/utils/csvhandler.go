@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 func WriteMapsToCSV(maps []map[string]string, filename string) {
@@ -76,6 +77,37 @@ func AccessBWLCsv() { //returns a mapping of key => BL or WL
 
 }
 
-func WriteBWL_toCSV() {
+func WriteBWL_toCSV(m map[string]BWInfo) {
+	header := []string{
+		"Address",
+		"Status",
+		"Time",
+	}
+	var file *os.File
+	var new error
+	filename := "bwlist.csv"
+	if _, new = os.Stat(filename); new == nil {
+		fmt.Printf("File %s already exists. Not creating a new file.\n", filename)
+		file, _ = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+
+	} else {
+		fmt.Printf("File %s does not exist. Creating a new file.\n", filename)
+		file, _ = os.Create(filename)
+	}
+
+	defer file.Close()
+	writer := csv.NewWriter((file))
+	defer writer.Flush()
+
+	if new != nil { //If file does not exist
+		writer.Write(header)
+	}
+	// Iterate over the map and write data
+	for key, info := range m {
+		record := []string{key, info.Bw, info.LastCheck.Format(time.RFC3339)}
+		if err := writer.Write(record); err != nil {
+			panic(err)
+		}
+	}
 
 }

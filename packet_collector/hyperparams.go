@@ -14,7 +14,7 @@ type Hyperparams struct {
 
 var Config = Hyperparams{
 	CheckInterval:       1000 * time.Millisecond, // Interval set to 1000 milliseconds (1 second)
-	WLDurationThreshold: 5000 * time.Millisecond,
-	WLRecheckInterval:   20000 * time.Millisecond,
+	WLDurationThreshold: 1000 * time.Millisecond,
+	WLRecheckInterval:   1000 * time.Millisecond,
 	Seed:                rand.New(rand.NewSource(9022)),
 }

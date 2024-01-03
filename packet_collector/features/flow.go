@@ -3,6 +3,7 @@ package features
 import (
 	"math"
 	"strconv"
+	"time"
 )
 
 // Top Feature Names: ['Destination_Port', 'Init_Win_bytes_backward', 'Init_Win_bytes_forward', 'Fwd_IAT_Min', 'Fwd_Header_Length', 'Flow_IAT_Min', 'Flow_Duration', 'Bwd_IAT_Min', 'Flow_Bytes/s', 'Bwd_Packet_Length_Std', 'Total_Length_of_Fwd_Packets', 'Packet_Length_Std', 'PSH_Flag_Count', 'Bwd_Packet_Length_Min', 'Total_Fwd_Packets', 'min_seg_size_forward', 'Total_Backward_Packets', 'Bwd_Packets/s', 'Fwd_Packet_Length_Max', 'Fwd_IAT_Mean']
@@ -21,6 +22,7 @@ type Flow struct {
 
 	StartTime int64 //for flow duration
 	LastTime  int64
+	LastCheck int64
 	Fin       bool
 
 	InitWinBytesBwd int64 //1.39
@@ -76,9 +78,9 @@ func (f *Flow) Init(firstPacket *Packet,
 		f.Client_ip = ipdst
 		f.Client_port = tcpdst
 	}
-
 	f.StartTime = t
 	f.LastTime = t
+	f.LastCheck = t
 
 	f.AddPacket(*firstPacket)
 }
@@ -205,6 +207,10 @@ func (f Flow) GetIATStats() (int64, int64, int64) {
 
 func (f Flow) GetFlowDuration() int64 {
 	return f.LastTime - f.StartTime
+}
+
+func (f Flow) GetLastCheckDuration() int64 {
+	return time.Now().UnixMilli() - f.LastCheck
 }
 
 func (f Flow) GetFin(pkt Packet) bool {

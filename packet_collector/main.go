@@ -17,7 +17,7 @@ import (
 
 func main() {
 	//Get Command Line Arguments
-	netInterface := flag.String("net_interface", "eth0", "Network Interface Obtained from ifconfig")
+	netInterface := flag.String("net_interface", "wlo1", "Network Interface Obtained from ifconfig")
 	flag.Parse()
 	print(netInterface)
 	//Get Local IP

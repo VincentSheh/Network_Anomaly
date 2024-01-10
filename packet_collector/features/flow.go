@@ -1,26 +1,30 @@
 package features
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
 	"math"
-	"strconv"
+	"net/http"
 	"time"
 )
 
 // Top Feature Names: ['Destination_Port', 'Init_Win_bytes_backward', 'Init_Win_bytes_forward', 'Fwd_IAT_Min', 'Fwd_Header_Length', 'Flow_IAT_Min', 'Flow_Duration', 'Bwd_IAT_Min', 'Flow_Bytes/s', 'Bwd_Packet_Length_Std', 'Total_Length_of_Fwd_Packets', 'Packet_Length_Std', 'PSH_Flag_Count', 'Bwd_Packet_Length_Min', 'Total_Fwd_Packets', 'min_seg_size_forward', 'Total_Backward_Packets', 'Bwd_Packets/s', 'Fwd_Packet_Length_Max', 'Fwd_IAT_Mean']
 type Flow struct {
 	//Features Obtained from packet information
-	Protocol      string
-	MyDevice_ip   string
-	MyDevice_port string
-	Client_ip     string
-	Client_port   string
+	Protocol     string
+	MyDeviceIP   string //`json:"MyDeviceIP"`
+	MyDevicePort string
+	ClientIP     string
+	ClientPort   string
 	// Direction is bidirectional!
 
 	//We dont need to import because it is within the same package
-	FwdPackets []Packet
-	BwdPackets []Packet
+	FwdPackets []Packet `json:"-"`
+	BwdPackets []Packet `json:"-"`
 
-	StartTime int64 //for flow duration
+	StartTime int64
 	LastTime  int64
 	LastCheck int64
 	Fin       bool
@@ -68,15 +72,15 @@ func (f *Flow) Init(firstPacket *Packet,
 
 	f.Protocol = firstPacket.Protocol
 	if direction { //If traffic is inbound
-		f.MyDevice_ip = ipdst
-		f.MyDevice_port = tcpdst
-		f.Client_ip = ipsrc
-		f.Client_port = tcpsrc
+		f.MyDeviceIP = ipdst
+		f.MyDevicePort = tcpdst
+		f.ClientIP = ipsrc
+		f.ClientPort = tcpsrc
 	} else {
-		f.MyDevice_ip = ipsrc
-		f.MyDevice_port = tcpsrc
-		f.Client_ip = ipdst
-		f.Client_port = tcpdst
+		f.MyDeviceIP = ipsrc
+		f.MyDevicePort = tcpsrc
+		f.ClientIP = ipdst
+		f.ClientPort = tcpdst
 	}
 	f.StartTime = t
 	f.LastTime = t
@@ -223,41 +227,89 @@ func (f Flow) GetFin(pkt Packet) bool {
 	return false
 }
 
-func (f Flow) GetFullFeatures() map[string]string {
-	BwdTotPacketLength, BwdTotPackets, BwdPacketLengthMin, BwdPacketLengthStd, BwdPacketLengthMean, BwdPacketRate := f.GetBwdPacketStats()
+func (f Flow) GetFullFeatures() map[string]interface{} {
+	// BwdTotPacketLength, BwdTotPackets, BwdPacketLengthMin, BwdPacketLengthStd, BwdPacketLengthMean, BwdPacketRate := f.GetBwdPacketStats()
+	BwdTotPacketLength, BwdTotPackets, BwdPacketLengthMin, _, BwdPacketLengthMean, BwdPacketRate := f.GetBwdPacketStats()
+
 	FwdHeaderLength, FwdTotPackets := f.GetFwdPacketStats()
 	AveragePacketSize, PacketLengthStd := f.GetPacketStats()
-	FlowIATMax, FlowIATMin, FlowIATTotal := f.GetIATStats()
-	fullFeatures := map[string]string{
-		"Protocol":        f.Protocol,
-		"MyDevice_ip":     f.MyDevice_ip,
-		"MyDevice_port":   f.MyDevice_port,
-		"Client_ip":       f.Client_ip,
-		"Client_port":     f.Client_port,
-		"StartTime":       strconv.FormatInt(f.StartTime, 10),
-		"LastTime":        strconv.FormatInt(f.LastTime, 10),
-		"Fin":             strconv.FormatBool(f.Fin),
-		"InitWinBytesBwd": strconv.FormatUint(uint64(f.InitWinBytesBwd), 10),
-		"InitWinBytesFwd": strconv.FormatUint(uint64(f.InitWinBytesFwd), 10),
-		//Calculated Features
-		"BwdTotPacketLength":  strconv.FormatInt(BwdTotPacketLength, 10),
-		"BwdTotPackets":       strconv.FormatInt(BwdTotPackets, 10),
-		"BwdPacketLengthMin":  strconv.FormatUint(uint64(BwdPacketLengthMin), 10),
-		"BwdPacketLengthStd":  strconv.FormatFloat(BwdPacketLengthStd, 'f', -1, 64),
-		"BwdPacketLengthMean": strconv.FormatFloat(BwdPacketLengthMean, 'f', -1, 64),
-		"BwdPacketRate":       strconv.FormatFloat(BwdPacketRate, 'f', -1, 64),
 
-		"FwdHeaderLength": strconv.FormatInt(FwdHeaderLength, 10),
-		"FwdTotPackets":   strconv.FormatInt(FwdTotPackets, 10),
-		// "MinSegSizeForward":  strconv.FormatInt(MinSegSizeForward, 10),
-		"PacketLengthStd":   strconv.FormatFloat(PacketLengthStd, 'f', -1, 64),
-		"AveragePacketSize": strconv.FormatFloat(AveragePacketSize, 'f', -1, 64),
-		// "IdleMin":            strconv.FormatInt(IdleMin, 10),
-		"FlowIATMin":   strconv.FormatInt(FlowIATMin, 10),
-		"FlowIATMax":   strconv.FormatInt(FlowIATMax, 10),
-		"FlowIATTotal": strconv.FormatInt(FlowIATTotal, 10),
-		"FlowDuration": strconv.FormatInt(f.GetFlowDuration(), 10),
+	// FlowIATMax, FlowIATMin, FlowIATTotal := f.GetIATStats()
+	_, FlowIATMin, _ := f.GetIATStats()
+
+	fullFeatures := map[string]interface{}{
+		"Init_Win_bytes_forward":  uint64(f.InitWinBytesFwd),
+		"Bwd Packets/s":           BwdPacketRate,
+		"Init_Win_bytes_backward": uint64(f.InitWinBytesBwd),
+		"Flow Duration":           f.GetFlowDuration(),
+		"Packet Length Std":       PacketLengthStd,
+		"Destination Port":        f.ClientPort,
+		// "MinSegSizeForward":			 MinSegSizeForward,
+		"Average Packet Size": AveragePacketSize,
+
+		"Total Length of Bwd Packets": BwdTotPacketLength,
+		"Bwd Packet Length Min":       uint64(BwdPacketLengthMin),
+		"Fwd Header Length":           FwdHeaderLength,
+		"Total Backward Packets":      BwdTotPackets,
+		"Total Length of Fwd Packets": FwdTotPackets,
+		"Bwd Packet Length Mean":      BwdPacketLengthMean,
+		"Flow IAT Min":                FlowIATMin,
+
+		// "Protocol":        f.Protocol,
+		// "MyDeviceIP":      f.MyDeviceIP,
+		// "MyDevicePort":    f.MyDevicePort,
+		// "ClientIP":        f.ClientIP,
+		// "StartTime":       f.StartTime,
+		// "LastTime":        f.LastTime,
+		// "Fin":             f.Fin,
+		// //Calculated Features
+		// "BwdPacketLengthStd":  BwdPacketLengthStd,
+		// // "IdleMin":            strconv.FormatInt(IdleMin, 10),
+		// "FlowIATMax":   FlowIATMax,
+		// "FlowIATTotal": FlowIATTotal,
 	}
 
 	return fullFeatures
+}
+
+// Send detection
+func (f Flow) SendFlowData() bool {
+	jsonData, err := json.Marshal(f.GetFullFeatures())
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	detectorUrl := "http://127.0.0.1:3001/detect"
+	req, err := http.NewRequest("POST", detectorUrl, bytes.NewBuffer(jsonData))
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	fmt.Println("Response:", string(body))
+
+	// Unmarshal JSON data
+	var response Response
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		fmt.Println("Error unmarshaling JSON:", err)
+		return false
+	}
+	fmt.Println("IsMalicious:", response.IsMalicious)
+	return response.IsMalicious
+
+}
+
+type Response struct {
+	IsMalicious bool `json:"isMalicious"`
 }

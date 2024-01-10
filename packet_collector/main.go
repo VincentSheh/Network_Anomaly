@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net"
@@ -15,6 +16,10 @@ import (
 )
 
 func main() {
+	//Get Command Line Arguments
+	netInterface := flag.String("net_interface", "eth0", "Network Interface Obtained from ifconfig")
+	flag.Parse()
+	print(netInterface)
 	//Get Local IP
 	addrs_arr, _ := net.InterfaceAddrs()
 	var local_ip string
@@ -30,7 +35,7 @@ func main() {
 	fmt.Printf("Running Packet Filtering in %s \n", local_ip)
 
 	// Use Pcap to capture packets
-	handle, err := pcap.OpenLive("en0", 1600, true, pcap.BlockForever) //ifconfig to see active network interface
+	handle, err := pcap.OpenLive(*netInterface, 1600, true, pcap.BlockForever) //ifconfig to see active network interface
 	if err != nil {
 		log.Fatal((err))
 	}
@@ -98,7 +103,7 @@ func main() {
 		}
 
 		// TODO6: Recheck WL / BL => Remove the WL from the BWList, Forward the BL to NFQueue?
-		key := flow.Client_ip + ":" + flow.Client_port
+		key := flow.ClientIP + ":" + flow.ClientPort
 		var isWL bool
 		if info, isExist := BWList[key]; isExist {
 			isWL = info.Bw == "white"
@@ -114,13 +119,15 @@ func main() {
 		if lastCheckDuration > Config.CheckInterval.Milliseconds() {
 			// TODO5: Check BWL: if WL skip inference __DONE__
 			fmt.Printf("FlowDuration: %d \n", lastCheckDuration)
+
 			// TODO2: Send to Detection Model
-			var isMalicious bool
 			// isMaliciousProb = PostDetection()
+			var isMalicious bool
 			if isWL {
 				isMalicious = false
 			} else {
-				isMalicious = Config.Seed.Intn(10) == 0
+				isMalicious = flow.SendFlowData()
+				// isMalicious = Config.Seed.Intn(10) == 0
 			}
 
 			// TODO3-1: Add to BWL __DONE__
@@ -144,8 +151,8 @@ func main() {
 		}
 
 		i += 1
-		if i == 1000 {
-			var featuresList []map[string]string
+		if i == 10000 {
+			var featuresList []map[string]interface{}
 			for _, flow := range recFlows {
 				featuresList = append(featuresList, flow.GetFullFeatures())
 			}

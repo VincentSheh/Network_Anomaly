@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func WriteMapsToCSV(maps []map[string]string, filename string) {
+func WriteMapsToCSV(maps []map[string]interface{}, filename string) {
 	var file *os.File
 	var new error
 	if _, new = os.Stat(filename); new == nil {
@@ -31,30 +31,20 @@ func WriteMapsToCSV(maps []map[string]string, filename string) {
 	// 	header = append(header, key)
 	// }
 	header := []string{
-		"Protocol",
-		"MyDevice_ip",
-		"MyDevice_port",
-		"Client_ip",
-		"Client_port",
-		"StartTime",
-		"LastTime",
-		"Fin",
-		"InitWinBytesBwd",
-		"InitWinBytesFwd",
-		"BwdTotPacketLength",
-		"BwdTotPackets",
-		"BwdPacketLengthMin",
-		"BwdPacketLengthStd",
-		"BwdPacketLengthMean",
-		"BwdPacketRate",
-		"FwdHeaderLength",
-		"FwdTotPackets",
-		"PacketLengthStd",
-		"AveragePacketSize",
-		"FlowIATMin",
-		"FlowIATMax",
-		"FlowIATTotal",
-		"FlowDuration",
+		"Init_Win_bytes_forward",
+		"Bwd Packets/s",
+		"Init_Win_bytes_backward",
+		"Flow Duration",
+		"Packet Length Std",
+		"Destination Port",
+		"Average Packet Size",
+		"Total Length of Bwd Packets",
+		"Bwd Packet Length Min",
+		"Fwd Header Length",
+		"Total Backward Packets",
+		"Total Length of Fwd Packets",
+		"Bwd Packet Length Mean",
+		"Flow IAT Min",
 	}
 	if new != nil { //If file does not exist
 		writer.Write(header)
@@ -64,7 +54,7 @@ func WriteMapsToCSV(maps []map[string]string, filename string) {
 	for _, m := range maps {
 		var record []string
 		for _, key := range header {
-			record = append(record, m[key])
+			record = append(record, fmt.Sprintf("%v", m[key]))
 		}
 		if err := writer.Write(record); err != nil {
 			log.Fatalf("Failed to write rows to file: %s", err)

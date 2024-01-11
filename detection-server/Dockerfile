@@ -4,6 +4,6 @@ WORKDIR /app
 ADD . /app
 RUN pip install -r requirements.txt
 
-ENV PORT=3001
-EXPOSE 3001
-CMD ["python", "detector.py"]
+ENV PORT=4000
+EXPOSE 4000
+CMD ["python", "server.py"]

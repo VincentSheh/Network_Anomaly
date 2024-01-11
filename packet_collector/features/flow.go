@@ -273,13 +273,17 @@ func (f Flow) GetFullFeatures() map[string]interface{} {
 }
 
 // Send detection
-func (f Flow) SendFlowData() bool {
+func (f *Flow) SendFlowData() bool {
+	//Update lastCheck
+	f.LastCheck = time.Now().UnixMilli()
 	jsonData, err := json.Marshal(f.GetFullFeatures())
 	if err != nil {
 		fmt.Println(err)
 		return false
 	}
-	detectorUrl := "http://127.0.0.1:3001/detect"
+	detectorUrl := "http://192.168.50.221:3001/detect"
+	// detectorUrl := "http://127.0.0.1:4000/detect"
+
 	req, err := http.NewRequest("POST", detectorUrl, bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Println(err)

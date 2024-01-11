@@ -38,7 +38,7 @@ def validated_req_schema(flow_data):
 
 def perform_inference_sup(x):
   output = model.predict(x)  
-  return False if output == 1 else True
+  return False if output == 0 else True
 
 def perform_inference_unsup(flow_data):
   pass
@@ -54,8 +54,8 @@ def detect():
 
     # result = model.predict(park_img, classes=3, conf = 0.4, save=True, verbose=False)
     # ill_result = model.predict(ill_park_img, classes=3, conf = 0.5, save=False , verbose =False)
-    return jsonify({"isMalicious": False}), 200
+    return jsonify({"isMalicious": isMalicious}), 200
   
 
 if __name__ == '__main__':
-  app.run(host='0.0.0.0', port = 3001, threaded=True)
+  app.run(host='0.0.0.0', port = 4000, threaded=True)

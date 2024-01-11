@@ -7,6 +7,7 @@ import (
 	"net"
 	"packet_collector/features"
 	"packet_collector/utils"
+	"runtime"
 	"strings"
 	"time"
 
@@ -16,16 +17,164 @@ import (
 	// "github.com/subgraph/go-nfnetlink/nfqueue"
 )
 
-func measureCPU(done chan bool) {
-	percent, err := cpu.Percent(5*time.Second, false)
-	if err != nil {
-		fmt.Println("Error getting CPU percent:", err)
-		return
-	}
+func measureCPU(cpuUsage chan float64, memUsage chan float64, end_exec *time.Ticker) {
+	var totalCPU float64
+	var totalMem uint64
+	var count float64
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
 
-	fmt.Printf("Average CPU Usage over one minute: %v\n", percent[0])
-	done <- true
+	for {
+		select {
+		case <-end_exec.C:
+			cpuUsage <- totalCPU / count
+			memUsage <- float64(totalMem) / count
+			return
+		case <-ticker.C:
+			//CPU
+			percent, err := cpu.Percent(time.Second, false)
+			if err != nil {
+				fmt.Printf("Error measuring CPU: %v\n", err)
+				continue
+			}
+			if len(percent) > 0 {
+				totalCPU += percent[0]
+				count++
+			}
+			//Memory
+			var m runtime.MemStats
+			runtime.ReadMemStats(&m)
+			totalMem += m.TotalAlloc
+		}
+	}
 }
+
+func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ticker *time.Ticker) (int, int64) {
+
+	recFlows := make(map[gopacket.Flow]*features.Flow)
+	// Initialize BWList (Seperate from recFlows because key is source address)
+	BWList := make(map[string]utils.BWInfo)
+	//Start
+	iterCount := 0
+	var iterDuration int64 = 0
+	for p := range packetSource.Packets() {
+		select {
+		case <-run_ticker.C:
+			var featuresList []map[string]interface{}
+			for _, flow := range recFlows {
+				featuresList = append(featuresList, flow.GetFullFeatures())
+			}
+			utils.WriteMapsToCSV(featuresList, "output.csv")
+			// TODO3-2: Save to CSV
+			utils.WriteBWL_toCSV(BWList)
+			return iterCount, iterDuration
+		default:
+			iterCount++
+			var currTime int64 = time.Now().UnixMilli()
+			// Get packet length
+			//Network Layer decoding
+			networkLayer := p.NetworkLayer()
+			netFlow := networkLayer.NetworkFlow()
+			ipsrc, ipdst := netFlow.Endpoints()
+			// Get Direction
+			var direction bool //In = 0, Out = 1
+			if ipdst.String() == local_ip {
+				direction = true
+			} else {
+				direction = false
+			}
+			// size := len(p.Data())
+			// fmt.Printf("Size of the packet is %d %v\n", size, direction)
+
+			//Transport Layer decoding
+			transportLayer := p.TransportLayer()
+			tcpsrc, tcpdst := transportLayer.TransportFlow().Endpoints()
+			fmt.Printf("TCP: %s:%s -> %s:%s\n",
+				ipsrc, tcpsrc, ipdst, tcpdst)
+
+			packet := new(features.Packet)      // Create a pointer to a new Packet instance
+			packet.Init(p, direction, currTime) // Call Init on the pointer
+			// print("PACKET INFO-----\n ")
+			// packet.PrintPacketInfo()
+
+			//Flow Creation or Add Packet to flow
+			var flow *features.Flow
+			if f, ok := recFlows[netFlow]; ok {
+				flow = f
+				recFlows[netFlow].AddPacket(*packet)
+			} else {
+				flow = new(features.Flow)
+				flow.Init(
+					packet,
+					direction,
+					ipsrc.String(),
+					tcpsrc.String(),
+					ipdst.String(),
+					tcpdst.String(),
+					currTime,
+				)
+				recFlows[netFlow] = flow
+			}
+
+			// TODO6: Recheck WL / BL => Remove the WL from the BWList, Forward the BL to NFQueue?
+			key := flow.ClientIP + ":" + flow.ClientPort
+			var isWL bool
+			if info, isExist := BWList[key]; isExist {
+				isWL = info.Bw == "white"
+				if isWL && time.Now().Sub(info.LastCheck) > Config.WLRecheckInterval { //Pass to model
+					info.Bw = "recheck"
+					BWList[key] = info
+				}
+			}
+
+			// TODO1: Is Time ellapse (of BL/WL/unassigned) > threshold __DONE__
+			lastCheckDuration := flow.GetLastCheckDuration()
+
+			if lastCheckDuration > Config.CheckInterval.Milliseconds() {
+				// if lastCheckDuration > 0 {
+
+				// TODO5: Check BWL: if WL skip inference __DONE__
+				fmt.Printf("FlowDuration: %d \n", lastCheckDuration)
+
+				// TODO2: Send to Detection Model
+				// isMaliciousProb = PostDetection()
+				var isMalicious bool
+				if isWL {
+					isMalicious = false
+				} else {
+					isMalicious = flow.SendFlowData()
+					// isMalicious = Config.Seed.Intn(10) == 0
+				}
+
+				// TODO3-1: Add to BWL __DONE__
+				// TODO4: Process BWL => BL exec command line: iptables, __DONE__
+				if isMalicious {
+					BWList[key] = utils.BWInfo{
+						Bw:        "black", //true means black list
+						LastCheck: time.Now(),
+					}
+					// UNCOMMENT utils.BlackListIP(flow.Client_ip, flow.Client_port)
+				} else { //Check if the duration is enough to be in WL
+					flowDuration := flow.GetFlowDuration()
+					if flowDuration > Config.WLDurationThreshold.Milliseconds() {
+						BWList[key] = utils.BWInfo{
+							Bw:        "white", //true means black list
+							LastCheck: time.Now(),
+						}
+					}
+				}
+
+			}
+			endIterTime := time.Now().UnixMilli() - currTime
+			iterDuration += endIterTime
+
+		}
+
+	}
+	return 0, 0
+
+}
+
 func main() {
 	//Get Command Line Arguments
 	netInterface := flag.String("net_interface", "wlo1", "Network Interface Obtained from ifconfig")
@@ -34,8 +183,16 @@ func main() {
 	//Set timer
 
 	//Profiling
-	done := make(chan bool)
-	go measureCPU(done)
+	cpuUsage := make(chan float64)
+	cpuBefore, _ := cpu.Percent(3*time.Second, false)
+
+	// Memory
+	memUsage := make(chan float64)
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	MemBefore := m.TotalAlloc
+	run_ticker := time.NewTicker(20 * time.Second)
+	go measureCPU(cpuUsage, memUsage, run_ticker) //CPU
 
 	//Get Local IP
 	addrs_arr, _ := net.InterfaceAddrs()
@@ -66,124 +223,13 @@ func main() {
 
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 
-	recFlows := make(map[gopacket.Flow]*features.Flow)
-	// Initialize BWList (Seperate from recFlows because key is source address)
-	BWList := make(map[string]utils.BWInfo)
-	//Start
+	iterCount, iterDuration := processPackets(packetSource, local_ip, run_ticker)
 
-	for p := range packetSource.Packets() {
-		select {
-		case <-done:
-			var featuresList []map[string]interface{}
-			for _, flow := range recFlows {
-				featuresList = append(featuresList, flow.GetFullFeatures())
-			}
-			utils.WriteMapsToCSV(featuresList, "output.csv")
-			// TODO3-2: Save to CSV
-			utils.WriteBWL_toCSV(BWList)
-			return
-		default:
-			var t int64 = time.Now().UnixMilli()
-			// Get packet length
-			//Network Layer decoding
-			networkLayer := p.NetworkLayer()
-			netFlow := networkLayer.NetworkFlow()
-			ipsrc, ipdst := netFlow.Endpoints()
-			// Get Direction
-			var direction bool //In = 0, Out = 1
-			if ipdst.String() == local_ip {
-				direction = true
-			} else {
-				direction = false
-			}
-			// size := len(p.Data())
-			// fmt.Printf("Size of the packet is %d %v\n", size, direction)
-
-			//Transport Layer decoding
-			transportLayer := p.TransportLayer()
-			tcpsrc, tcpdst := transportLayer.TransportFlow().Endpoints()
-			fmt.Printf("TCP: %s:%s -> %s:%s\n",
-				ipsrc, tcpsrc, ipdst, tcpdst)
-
-			packet := new(features.Packet) // Create a pointer to a new Packet instance
-			packet.Init(p, direction, t)   // Call Init on the pointer
-			// print("PACKET INFO-----\n ")
-			packet.PrintPacketInfo()
-
-			//Flow Creation or Add Packet to flow
-			var flow *features.Flow
-			if f, ok := recFlows[netFlow]; ok {
-				flow = f
-				recFlows[netFlow].AddPacket(*packet)
-			} else {
-				flow = new(features.Flow)
-				flow.Init(
-					packet,
-					direction,
-					ipsrc.String(),
-					tcpsrc.String(),
-					ipdst.String(),
-					tcpdst.String(),
-					t,
-				)
-				recFlows[netFlow] = flow
-			}
-
-			// TODO6: Recheck WL / BL => Remove the WL from the BWList, Forward the BL to NFQueue?
-			key := flow.ClientIP + ":" + flow.ClientPort
-			var isWL bool
-			if info, isExist := BWList[key]; isExist {
-				isWL = info.Bw == "white"
-				if isWL && time.Now().Sub(info.LastCheck) > Config.WLRecheckInterval { //Pass to model
-					info.Bw = "recheck"
-					BWList[key] = info
-				}
-			}
-
-			// TODO1: Is Time ellapse (of BL/WL/unassigned) > threshold __DONE__
-			lastCheckDuration := flow.GetLastCheckDuration()
-
-			if lastCheckDuration > Config.CheckInterval.Milliseconds() {
-				// TODO5: Check BWL: if WL skip inference __DONE__
-				fmt.Printf("FlowDuration: %d \n", lastCheckDuration)
-
-				// TODO2: Send to Detection Model
-				// isMaliciousProb = PostDetection()
-				var isMalicious bool
-				if isWL {
-					isMalicious = false
-				} else {
-					// isMalicious = flow.SendFlowData()
-					isMalicious = Config.Seed.Intn(10) == 0
-				}
-
-				// TODO3-1: Add to BWL __DONE__
-				// TODO4: Process BWL => BL exec command line: iptables, __DONE__
-				if isMalicious {
-					BWList[key] = utils.BWInfo{
-						Bw:        "black", //true means black list
-						LastCheck: time.Now(),
-					}
-					// UNCOMMENT utils.BlackListIP(flow.Client_ip, flow.Client_port)
-				} else { //Check if the duration is enough to be in WL
-					flowDuration := flow.GetFlowDuration()
-					if flowDuration > Config.WLDurationThreshold.Milliseconds() {
-						BWList[key] = utils.BWInfo{
-							Bw:        "white", //true means black list
-							LastCheck: time.Now(),
-						}
-					}
-				}
-
-			}
-
-			// if i == 10000 {
-
-			// 	break
-			// }
-
-		}
-
-	}
-
+	//Profiling
+	cpuAverage := <-cpuUsage
+	memAverage := <-memUsage
+	fmt.Printf("Total Number of Packets %d \n", iterCount)
+	fmt.Printf("Duration of all iterations %d \n", iterDuration)
+	fmt.Printf("CPU Usage Before vs Average CPU usage: %f%% vs %f%%\n", cpuBefore[0], cpuAverage)
+	fmt.Printf("Memory Usage Before vs Average Memory usage: %d vs %f\n", MemBefore, memAverage)
 }

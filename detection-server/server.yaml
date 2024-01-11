@@ -30,6 +30,6 @@ spec:
   ports:
     - protocol: TCP
       port: 1935
-      targetPort: 1935
+      targetPort: 4000
       nodePort: 30000
   type: NodePort

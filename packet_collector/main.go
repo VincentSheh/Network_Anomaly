@@ -89,8 +89,6 @@ func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ti
 			//Transport Layer decoding
 			transportLayer := p.TransportLayer()
 			tcpsrc, tcpdst := transportLayer.TransportFlow().Endpoints()
-			fmt.Printf("TCP: %s:%s -> %s:%s\n",
-				ipsrc, tcpsrc, ipdst, tcpdst)
 
 			packet := new(features.Packet)      // Create a pointer to a new Packet instance
 			packet.Init(p, direction, currTime) // Call Init on the pointer
@@ -134,7 +132,6 @@ func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ti
 				// if lastCheckDuration > 0 {
 
 				// TODO5: Check BWL: if WL skip inference __DONE__
-				fmt.Printf("FlowDuration: %d \n", lastCheckDuration)
 
 				// TODO2: Send to Detection Model
 				// isMaliciousProb = PostDetection()
@@ -144,6 +141,9 @@ func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ti
 				} else {
 					isMalicious = flow.SendFlowData()
 					// isMalicious = Config.Seed.Intn(10) == 0
+					fmt.Printf("TCP: %s:%s -> %s:%s\n",
+						ipsrc, tcpsrc, ipdst, tcpdst)
+					fmt.Printf("FlowDuration: %d \n", lastCheckDuration)
 				}
 
 				// TODO3-1: Add to BWL __DONE__
@@ -153,6 +153,7 @@ func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ti
 						Bw:        "black", //true means black list
 						LastCheck: time.Now(),
 					}
+
 					// UNCOMMENT utils.BlackListIP(flow.Client_ip, flow.Client_port)
 				} else { //Check if the duration is enough to be in WL
 					flowDuration := flow.GetFlowDuration()

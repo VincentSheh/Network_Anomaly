@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ids-model-deployment
+  annotations:
+    kubernetes.io/ingress.class: "nginx"  
   # labels:
   #   app: tiangolo
 spec:
@@ -31,18 +33,23 @@ spec:
     - protocol: TCP
       port: 1935
       targetPort: 3001
-      nodePort: 30000
-  type: NodePort
+#      nodePort: 30000
+#  type: NodePort
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ids-model-ingress
 spec:
+  ingressClassName: nginx
   rules:
   - host: idsmodel.com
     http:
-      paths:
-      - backend:
-          serviceName: ids-model-service
-          servicePort: 1935
+      paths: 
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ids-model-service
+            port:
+              number: 1935

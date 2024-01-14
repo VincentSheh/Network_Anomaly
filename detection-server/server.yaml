@@ -18,7 +18,7 @@ spec:
       - name: ids-model
         image: asture123/detector
         ports:
-        - containerPort: 1935
+        - containerPort: 3001
 ---
 apiVersion: v1
 kind: Service
@@ -30,6 +30,19 @@ spec:
   ports:
     - protocol: TCP
       port: 1935
-      targetPort: 4000
+      targetPort: 3001
       nodePort: 30000
   type: NodePort
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ids-model-ingress
+spec:
+  rules:
+  - host: idsmodel.com
+    http:
+      paths:
+      - backend:
+          serviceName: ids-model-service
+          servicePort: 1935

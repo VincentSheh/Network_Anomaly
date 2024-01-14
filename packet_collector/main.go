@@ -48,6 +48,34 @@ func measureCPU(cpuUsage chan float64, memUsage chan float64, end_exec *time.Tic
 		}
 	}
 }
+func getPacketInfo(local_ip string, p *gopacket.Packet) (
+	gopacket.Endpoint,
+	gopacket.Endpoint,
+	gopacket.Endpoint,
+	gopacket.Endpoint,
+	bool,
+	gopacket.Flow,
+) {
+	//Network Layer decoding
+	packet := *p
+	networkLayer := packet.NetworkLayer()
+	netFlow := networkLayer.NetworkFlow()
+	ipsrc, ipdst := netFlow.Endpoints()
+	// Get Direction
+	var direction bool //In = 0, Out = 1
+	if ipdst.String() == local_ip {
+		direction = true
+	} else {
+		direction = false
+	}
+	// size := len(p.Data())
+	// fmt.Printf("Size of the packet is %d %v\n", size, direction)
+
+	//Transport Layer decoding
+	transportLayer := packet.TransportLayer()
+	tcpsrc, tcpdst := transportLayer.TransportFlow().Endpoints()
+	return ipsrc, ipdst, tcpsrc, tcpdst, direction, netFlow
+}
 
 func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ticker *time.Ticker) (int, int64) {
 
@@ -71,25 +99,8 @@ func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ti
 		default:
 			iterCount++
 			var currTime int64 = time.Now().UnixMilli()
-			// Get packet length
-			//Network Layer decoding
-			networkLayer := p.NetworkLayer()
-			netFlow := networkLayer.NetworkFlow()
-			ipsrc, ipdst := netFlow.Endpoints()
-			// Get Direction
-			var direction bool //In = 0, Out = 1
-			if ipdst.String() == local_ip {
-				direction = true
-			} else {
-				direction = false
-			}
-			// size := len(p.Data())
-			// fmt.Printf("Size of the packet is %d %v\n", size, direction)
 
-			//Transport Layer decoding
-			transportLayer := p.TransportLayer()
-			tcpsrc, tcpdst := transportLayer.TransportFlow().Endpoints()
-
+			ipsrc, ipdst, tcpsrc, tcpdst, direction, netFlow := getPacketInfo(local_ip, &p)
 			packet := new(features.Packet)      // Create a pointer to a new Packet instance
 			packet.Init(p, direction, currTime) // Call Init on the pointer
 			// print("PACKET INFO-----\n ")
@@ -130,6 +141,9 @@ func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ti
 
 			if lastCheckDuration > Config.CheckInterval.Milliseconds() {
 				// if lastCheckDuration > 0 {
+				fmt.Printf("TCP: %s:%s -> %s:%s\n",
+					ipsrc, tcpsrc, ipdst, tcpdst)
+				fmt.Printf("FlowDuration: %d \n", lastCheckDuration)
 
 				// TODO5: Check BWL: if WL skip inference __DONE__
 
@@ -141,9 +155,7 @@ func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ti
 				} else {
 					isMalicious = flow.SendFlowData()
 					// isMalicious = Config.Seed.Intn(10) == 0
-					fmt.Printf("TCP: %s:%s -> %s:%s\n",
-						ipsrc, tcpsrc, ipdst, tcpdst)
-					fmt.Printf("FlowDuration: %d \n", lastCheckDuration)
+
 				}
 
 				// TODO3-1: Add to BWL __DONE__

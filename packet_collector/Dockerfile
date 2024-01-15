@@ -18,4 +18,5 @@ COPY . ./
 RUN CGO_ENABLED=1 go build -o /ids
 
 # Command to run the executable
-CMD ["/ids"]
+#ENTRYPOINT is used to pass command line argument
+ENTRYPOINT ["/ids"] 

@@ -92,7 +92,8 @@ func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ti
 			for _, flow := range recFlows {
 				featuresList = append(featuresList, flow.GetFullFeatures())
 			}
-			utils.WriteMapsToCSV(featuresList, "output.csv")
+			volumePath := "/pv/pv1/"
+			utils.WriteMapsToCSV(featuresList, volumePath+"output.csv")
 			// TODO3-2: Save to CSV
 			utils.WriteBWL_toCSV(BWList)
 			return iterCount, iterDuration
@@ -190,7 +191,7 @@ func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ti
 
 func main() {
 	//Get Command Line Arguments
-	netInterface := flag.String("net_interface", "wlo1", "Network Interface Obtained from ifconfig")
+	netInterface := flag.String("net-interface", "wlo1", "Network Interface Obtained from ifconfig")
 	flag.Parse()
 	print(netInterface, "\n")
 	//Set timer

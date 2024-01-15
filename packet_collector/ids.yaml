@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ids-pm-deployment
+  annotations:
+    kubernetes.io/ingress.class: "nginx"  
+  # labels:
+  #   app: tiangolo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ids-pm
+  template:
+    metadata:
+      labels:
+        app: ids-pm
+    spec:
+      hostNetwork: true
+      containers:
+      - name: ids-pm
+        image: asture123/ids
+        ports:
+        - containerPort: 3002
+        args:
+          - "-net-interface"
+          - "enp0s3"
+        volumeMounts:
+        - mountPath: "/pv/pv1"
+          name: packetvolume
+      volumes:
+      - name: packetvolume
+        persistentVolumeClaim:
+          claimName: packet-pvc        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ids-pm-service
+spec:
+  selector:
+    app: ids-pm
+  ports:
+    - protocol: TCP
+      port: 1937
+      targetPort: 3002
+#      nodePort: 30000
+#  type: NodePort
+# ---
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: ids-model-ingress
+# spec:
+#   ingressClassName: nginx
+#   rules:
+#   - host: idsmodel.com
+#     http:
+#       paths: 
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: ids-model-service
+#             port:
+#               number: 1935

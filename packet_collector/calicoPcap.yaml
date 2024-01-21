@@ -1,0 +1,7 @@
+apiVersion: projectcalico.org/v3
+kind: PacketCapture
+metadata:
+  name: sample-capture-nginx
+  namespace: pcap
+spec:
+  selector: k8s-app == "nginx"

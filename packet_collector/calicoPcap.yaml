@@ -1,8 +1,11 @@
 apiVersion: projectcalico.org/v3
 kind: PacketCapture
 metadata:
-  name: pcap-ingress-nginx
-  namespace: ingress-nginx
+  name: sample-capture
+  namespace: sample-namespace
 spec:
-  # selector: k8s-app == "nginx"
-  selector: all()
+  selector: k8s-app == "sample-app"
+  filters:
+    - protocol: TCP
+      ports:
+        - 80

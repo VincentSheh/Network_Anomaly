@@ -1,8 +1,0 @@
-apiVersion: projectcalico.org/v3
-kind: PacketCapture
-metadata:
-  name: pcap-ingress-nginx
-  namespace: ingress-nginx
-spec:
-  # selector: k8s-app == "nginx"
-  selector: all()

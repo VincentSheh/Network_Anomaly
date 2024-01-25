@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ids-pm-deployment
+  namespace: default
+spec:
+  hostNetwork: true
+  containers:
+    - name: tcpdump
+      image: asture123/tcpdump
+      # Replace 'tcpdump-image' with the name of an image that has tcpdump installed.
+      # Example: You can use a public image or one you have created with tcpdump installed.
+      securityContext:
+        capabilities:
+          add: ["NET_RAW", "NET_ADMIN"]
+      command: ["tcpdump"]
+      args: ["-i", "any"]
+      # The above command and args will start tcpdump capturing all traffic on all interfaces.

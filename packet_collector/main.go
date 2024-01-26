@@ -30,22 +30,26 @@ func getPacketInfo(local_ip string, p *gopacket.Packet) (
 ) {
 	//Network Layer decoding
 	packet := *p
+	var ipsrc, ipdst, tcpsrc, tcpdst gopacket.Endpoint
+	var direction bool
+	var netFlow gopacket.Flow
 	networkLayer := packet.NetworkLayer()
-	netFlow := networkLayer.NetworkFlow()
-	ipsrc, ipdst := netFlow.Endpoints()
-	// Get Direction
-	var direction bool //In = 0, Out = 1
-	if ipdst.String() == local_ip {
-		direction = true
-	} else {
-		direction = false
+	if networkLayer != nil {
+		netFlow := networkLayer.NetworkFlow()
+		ipsrc, ipdst = netFlow.Endpoints()
+		// Get Direction
+		if ipdst.String() == local_ip {
+			direction = true
+		} else {
+			direction = false
+		}
+		// size := len(p.Data())
+		// fmt.Printf("Size of the packet is %d %v\n", size, direction)
 	}
-	// size := len(p.Data())
-	// fmt.Printf("Size of the packet is %d %v\n", size, direction)
 
 	//Transport Layer decoding
 	transportLayer := packet.TransportLayer()
-	tcpsrc, tcpdst := transportLayer.TransportFlow().Endpoints()
+	tcpsrc, tcpdst = transportLayer.TransportFlow().Endpoints()
 	fmt.Printf("IP Source: %s, IP Destination: %s, TCP Source: %s, TCP Destination: %s, Direction: %v, NetFlow: %s\n",
 		ipsrc, ipdst, tcpsrc, tcpdst, direction, netFlow)
 

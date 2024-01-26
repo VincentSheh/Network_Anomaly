@@ -171,22 +171,6 @@ func main() {
 	path := flag.String("path", "./tcpdump/mycapture.pcap", "Path to Pcap File")
 	flag.Parse()
 	print(path, "\n")
-<<<<<<< HEAD
-	//Set timer
-
-	//Profiling
-	cpuUsage := make(chan float64)
-	cpuBefore, _ := cpu.Percent(3*time.Second, false)
-
-	// Memory
-	memUsage := make(chan float64)
-	var m runtime.MemStats
-	runtime.ReadMemStats(&m)
-	MemBefore := m.TotalAlloc
-	run_ticker := time.NewTicker(20 * time.Second)
-	go measureCPU(cpuUsage, memUsage, run_ticker) //CPU
-=======
->>>>>>> 143a676d8fdb3120e55e707ddcec9802969fef13
 
 	//Get Local IP
 	// addrs_arr, _ := net.InterfaceAddrs()
@@ -205,11 +189,7 @@ func main() {
 
 	// Use Pcap to capture packets
 	// handle, err := pcap.OpenLive(*netInterface, 1600, true, pcap.BlockForever) //ifconfig to see active network interface
-<<<<<<< HEAD
-	handle, err := pcap.OpenOffline(path)
-=======
 	handle, err := pcap.OpenOffline(*path)
->>>>>>> 143a676d8fdb3120e55e707ddcec9802969fef13
 	if err != nil {
 		log.Fatal((err))
 	}

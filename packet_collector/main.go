@@ -49,7 +49,10 @@ func getPacketInfo(local_ip string, p *gopacket.Packet) (
 
 	//Transport Layer decoding
 	transportLayer := packet.TransportLayer()
-	tcpsrc, tcpdst = transportLayer.TransportFlow().Endpoints()
+	if transportLayer != nil {
+		tcpsrc, tcpdst = transportLayer.TransportFlow().Endpoints()
+
+	}
 	fmt.Printf("IP Source: %s, IP Destination: %s, TCP Source: %s, TCP Destination: %s, Direction: %v, NetFlow: %s\n",
 		ipsrc, ipdst, tcpsrc, tcpdst, direction, netFlow)
 

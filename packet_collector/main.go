@@ -169,7 +169,6 @@ func processPackets(
 }
 
 func main() {
-
 	local_ip := "172.16.189.72"
 	fmt.Printf("Running Packet Filtering in %s \n", local_ip)
 

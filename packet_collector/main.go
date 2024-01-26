@@ -97,7 +97,8 @@ func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ti
 			for _, flow := range recFlows {
 				featuresList = append(featuresList, flow.GetFullFeatures())
 			}
-			volumePath := "/pv/pv1/"
+			// volumePath := "/pv/pv1/"
+			volumePath := "./"
 			utils.WriteMapsToCSV(featuresList, volumePath+"output.csv")
 			// TODO3-2: Save to CSV
 			utils.WriteBWL_toCSV(BWList)

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt" // Import the fmt package to print messages to the console.
 	"log" // Import the log package to log errors to the console.
+	"path/filepath"
 
 	"github.com/google/gopacket"        // Import the gopacket package to decode packets.
 	"github.com/google/gopacket/layers" // Import the layers package to access the various network layers.
@@ -11,34 +12,44 @@ import (
 
 func main() {
 
-	// Open up the pcap file for reading
-	handle, err := pcap.OpenOffline("mycapture.pcap")
-	if err != nil {
-		log.Fatal(err)
+	// Read files
+	file_initial := "./capture_*"
+	files, _ := filepath.Glob(file_initial)
+
+	for _, file := range files {
+		fmt.Println(file)
 	}
-	defer handle.Close()
-
-	// Loop through packets in file
-	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-	for packet := range packetSource.Packets() {
-
-		// Print the packet details
-		fmt.Println(packet.String())
-
-		// Extract and print the Ethernet layer
-		ethLayer := packet.Layer(layers.LayerTypeEthernet)
-		if ethLayer != nil {
-			ethPacket, _ := ethLayer.(*layers.Ethernet)
-			fmt.Println("Ethernet source MAC address:", ethPacket.SrcMAC)
-			fmt.Println("Ethernet destination MAC address:", ethPacket.DstMAC)
+	for _, file := range files {
+		fmt.Printf("------- Reading %s ---------\n", file)
+		handle, err := pcap.OpenOffline(file)
+		// Open up the pcap file for reading
+		if err != nil {
+			log.Fatal(err)
 		}
+		defer handle.Close()
 
-		// Extract and print the IP layer
-		ipLayer := packet.Layer(layers.LayerTypeIPv4)
-		if ipLayer != nil {
-			ipPacket, _ := ipLayer.(*layers.IPv4)
-			fmt.Println("IP source address:", ipPacket.SrcIP)
-			fmt.Println("IP destination address:", ipPacket.DstIP)
+		// Loop through packets in file
+		packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+		for packet := range packetSource.Packets() {
+
+			// Print the packet details
+			fmt.Println(packet.String())
+
+			// Extract and print the Ethernet layer
+			ethLayer := packet.Layer(layers.LayerTypeEthernet)
+			if ethLayer != nil {
+				ethPacket, _ := ethLayer.(*layers.Ethernet)
+				fmt.Println("Ethernet source MAC address:", ethPacket.SrcMAC)
+				fmt.Println("Ethernet destination MAC address:", ethPacket.DstMAC)
+			}
+
+			// Extract and print the IP layer
+			ipLayer := packet.Layer(layers.LayerTypeIPv4)
+			if ipLayer != nil {
+				ipPacket, _ := ipLayer.(*layers.IPv4)
+				fmt.Println("IP source address:", ipPacket.SrcIP)
+				fmt.Println("IP destination address:", ipPacket.DstIP)
+			}
 		}
 	}
 }

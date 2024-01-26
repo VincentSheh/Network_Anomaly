@@ -26,6 +26,7 @@ func main() {
 
 func printPacketInfo(packet gopacket.Packet) {
     // Handle Ethernet layer
+		fmt.Printf("I RUN \n")
     ethernetLayer := packet.Layer(layers.LayerTypeEthernet)
     if ethernetLayer != nil {
         ethernetPacket, _ := ethernetLayer.(*layers.Ethernet)

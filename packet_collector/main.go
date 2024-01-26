@@ -4,11 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net"
+
+	// "net"
 	"packet_collector/features"
 	"packet_collector/utils"
 	"runtime"
-	"strings"
+
+	// "strings"
 	"time"
 
 	"github.com/google/gopacket"
@@ -74,6 +76,9 @@ func getPacketInfo(local_ip string, p *gopacket.Packet) (
 	//Transport Layer decoding
 	transportLayer := packet.TransportLayer()
 	tcpsrc, tcpdst := transportLayer.TransportFlow().Endpoints()
+	fmt.Printf("IP Source: %s, IP Destination: %s, TCP Source: %s, TCP Destination: %s, Direction: %v, NetFlow: %s\n",
+		ipsrc, ipdst, tcpsrc, tcpdst, direction, netFlow)
+
 	return ipsrc, ipdst, tcpsrc, tcpdst, direction, netFlow
 }
 
@@ -209,17 +214,18 @@ func main() {
 	go measureCPU(cpuUsage, memUsage, run_ticker) //CPU
 
 	//Get Local IP
-	addrs_arr, _ := net.InterfaceAddrs()
-	var local_ip string
-	for _, addrs := range addrs_arr {
-		if ipnet, ok := addrs.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
-			ipAddr := ipnet.IP.String()
-			if strings.HasPrefix(ipAddr, "192.") {
-				local_ip = ipAddr
-				break
-			}
-		}
-	}
+	// addrs_arr, _ := net.InterfaceAddrs()
+	// var local_ip string
+	// for _, addrs := range addrs_arr {
+	// 	if ipnet, ok := addrs.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+	// 		ipAddr := ipnet.IP.String()
+	// 		if strings.HasPrefix(ipAddr, "192.") {
+	// 			local_ip = ipAddr
+	// 			break
+	// 		}
+	// 	}
+	// }
+	local_ip := "172.16.189.72"
 	fmt.Printf("Running Packet Filtering in %s \n", local_ip)
 
 	// Use Pcap to capture packets

@@ -12,7 +12,7 @@ import (
 func main() {
 
 	// Open up the pcap file for reading
-	handle, err := pcap.OpenOffline("mycapture1.pcap")
+	handle, err := pcap.OpenOffline("mycapture.pcap")
 	if err != nil {
 		log.Fatal(err)
 	}

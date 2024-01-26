@@ -191,9 +191,9 @@ func processPackets(packetSource *gopacket.PacketSource, local_ip string, run_ti
 
 func main() {
 	//Get Command Line Arguments
-	netInterface := flag.String("net-interface", "wlo1", "Network Interface Obtained from ifconfig")
+	path := flag.String("path", "./tcpdump/mycapture.pcap", "Path to Pcap File")
 	flag.Parse()
-	print(netInterface, "\n")
+	print(path, "\n")
 	//Set timer
 
 	//Profiling
@@ -223,7 +223,8 @@ func main() {
 	fmt.Printf("Running Packet Filtering in %s \n", local_ip)
 
 	// Use Pcap to capture packets
-	handle, err := pcap.OpenLive(*netInterface, 1600, true, pcap.BlockForever) //ifconfig to see active network interface
+	// handle, err := pcap.OpenLive(*netInterface, 1600, true, pcap.BlockForever) //ifconfig to see active network interface
+	handle, err := pcap.OpenOffline(*path)
 	if err != nil {
 		log.Fatal((err))
 	}

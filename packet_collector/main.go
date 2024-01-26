@@ -177,7 +177,7 @@ func main() {
 	// handle, err := pcap.OpenLive(*netInterface, 1600, true, pcap.BlockForever) //ifconfig to see active network interface
 
 	// Read files
-	file_initial := "./mycapture_"
+	file_initial := "./mycapture_*"
 	files, err := filepath.Glob(file_initial)
 	totIterCount := 0
 	totIterDuration := 0

@@ -11,7 +11,7 @@ while true; do
     ls -1tr capture_*.pcap | head -n -2 | xargs -d '\n' rm -f --
     
     # Run Go code to process the two latest pcap files
-    go run .
+    go run readpcap.go
 
 
 

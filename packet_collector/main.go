@@ -186,6 +186,7 @@ func main() {
 	recFlows := make(map[gopacket.Flow]*features.Flow)
 	BWList := make(map[string]utils.BWInfo) // Initialize BWList (Seperate from recFlows because key is source address)
 	for _, file := range files {
+		fmt.Printf("------- Reading %s ---------\n", file)
 		handle, err := pcap.OpenOffline(file)
 		if err != nil {
 			log.Printf("Error opening pcap file %s: %v\n", file, err)

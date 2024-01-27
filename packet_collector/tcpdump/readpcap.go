@@ -33,7 +33,7 @@ func main() {
 		for packet := range packetSource.Packets() {
 
 			// Print the packet details
-			// fmt.Println(packet.String())
+			fmt.Println(packet.String())
 
 			// Extract and print the Ethernet layer
 			ethLayer := packet.Layer(layers.LayerTypeEthernet)

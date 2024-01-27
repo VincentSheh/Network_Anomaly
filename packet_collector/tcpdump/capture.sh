@@ -28,12 +28,10 @@ while true; do
     # Delete the oldest pcap file
     # Find all pcap files, sort them, and delete all but the two most recent
     ls -1tr capture_*.pcap | head -n -2 | xargs -d '\n' rm -f --
-    sleep 1
+    sleep 3
     # Run Go code to process the two latest pcap files
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments
     go run readpcap.go
-
-
 
     # Repeat indefinitely
     sleep 5

@@ -73,6 +73,7 @@ func processPackets(
 
 		iterCount++
 		var currTime int64 = time.Now().UnixMilli()
+		pktTimestamp := p.Metadata().Timestamp.UnixMilli()
 
 		ipsrc, ipdst, tcpsrc, tcpdst, direction, netFlow := getPacketInfo(local_ip, &p)
 		packet := new(features.Packet)      // Create a pointer to a new Packet instance
@@ -94,7 +95,7 @@ func processPackets(
 				tcpsrc.String(),
 				ipdst.String(),
 				tcpdst.String(),
-				currTime,
+				pktTimestamp,
 			)
 			(*recFlows)[netFlow] = flow
 		}

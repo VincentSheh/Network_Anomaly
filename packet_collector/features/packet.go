@@ -21,7 +21,7 @@ type Packet struct {
 
 func (p *Packet) Init(packet gopacket.Packet, direction bool, t int64) {
 	p.Packet = packet
-	p.Time = t
+	p.Time = packet.Metadata().Timestamp.UnixMilli()
 	p.Direction = direction
 	p.HeaderLength, p.Protocol = p.GetIPData()
 	p.Length = p.GetPacketLength()

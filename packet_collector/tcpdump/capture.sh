@@ -6,7 +6,8 @@ while true; do
     duration=10
 
     # Get all the cali network interface name
-    netInterfaces=$(ip link show | grep -o 'cali[[:alnum:]]*')
+    grepInterfaces=$(ip link show | grep -o 'cali[[:alnum:]]*')
+    readarray -t netInterfaces <<< "$grepInterfaces"
     # Array to store pcap filenames
     pcap_files=()
     # Loop over each interface and start tcpdump in the background

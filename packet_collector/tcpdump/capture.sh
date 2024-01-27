@@ -10,7 +10,7 @@ while true; do
     # Array to store pcap filenames
     pcap_files=()
     # Loop over each interface and start tcpdump in the background
-    duration = 10
+    duration=10
     for intf in "${netInterface[@]}"; do
         filename="${intf}_capture.pcap"
         pcap_files+=("$filename") # Add filename to array

@@ -10,14 +10,27 @@ while true; do
     readarray -t netInterfaces <<< "$grepInterfaces"
     # Array to store pcap filenames
     pcap_files=()
+
+        
     # Loop over each interface and start tcpdump in the background
     duration=10
     host_ip="172.16.189.72"
+    # Insert the kubernetes IPs here
+    excluded_ips=("10.96.0.1" "172.16.166.128" "172.16.235.129")
+    filter_condition="host $host_ip"
+    for ip in "${excluded_ips[@]}"; do
+        # if [ -z "$filter_condition"]; then
+        #     filter_condition+="not host $ip"
+        # else
+            filter_condition+=" and not host $ip"
+        # fi
+    done    
+    
     for intf in "${netInterfaces[@]}"; do
         filename="${intf}_capture.pcap"
         pcap_files+=("$filename") # Add filename to array
         echo "Starting packet capture on $intf for $duration seconds"
-        timeout "$duration" tcpdump -i "$intf" "host $host_ip" -w "$filename" &
+        timeout "$duration" tcpdump -i "$intf" "$filter_condition" -w "$filename" &
     done
 
     # Wait for all tcpdump processes to finish

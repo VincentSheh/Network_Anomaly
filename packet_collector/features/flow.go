@@ -100,6 +100,9 @@ func (f *Flow) AddPacket(packet Packet) {
 		if f.InitWinBytesBwd == 0 { //Recheck Definition
 			f.InitWinBytesBwd = packet.TCPWindow
 		}
+		if f.StartTime != f.LastTime {
+			f.Flow_IAT_Arr = append(f.Flow_IAT_Arr, packet.Time-f.LastTime)
+		}		
 
 		//OUTBOUND PACKETS
 	} else {

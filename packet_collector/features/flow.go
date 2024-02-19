@@ -28,6 +28,7 @@ type Flow struct {
 	LastTime  int64
 	LastCheck int64
 	Fin       bool
+	Psh       bool
 
 	InitWinBytesBwd int64 //1.39
 	InitWinBytesFwd int64 //1.24
@@ -53,6 +54,8 @@ type Flow struct {
 	// TODO - IdleMin            int64 //0.51
 
 	Flow_IAT_Arr []int64
+	Fwd_IAT_Arr  []int64
+	Bwd_IAT_Arr  []int64
 	//GetIATStats()
 	// Flow IAT Min   int64 //0.31
 	// Flow IAT Max   int64 //0.26
@@ -101,8 +104,8 @@ func (f *Flow) AddPacket(packet Packet) {
 			f.InitWinBytesBwd = packet.TCPWindow
 		}
 		if f.StartTime != f.LastTime {
-			f.Flow_IAT_Arr = append(f.Flow_IAT_Arr, packet.Time-f.LastTime)
-		}		
+			f.Fwd_IAT_Arr = append(f.Fwd_IAT_Arr, packet.Time-f.LastTime)
+		}
 
 		//OUTBOUND PACKETS
 	} else {
@@ -110,24 +113,28 @@ func (f *Flow) AddPacket(packet Packet) {
 		if f.InitWinBytesFwd == 0 {
 			f.InitWinBytesFwd = packet.TCPWindow
 		}
+		if f.StartTime != f.LastTime {
+			f.Bwd_IAT_Arr = append(f.Bwd_IAT_Arr, packet.Time-f.LastTime)
+		}
 
 	}
-	f.Fin = f.GetFin(packet)
+	f.Fin, f.Psh = f.GetFin(packet)
 
 }
 
-func (f Flow) GetBwdPacketStats() (int64, int64, int, float64, float64, float64) {
+func (f Flow) GetBwdPacketStats() (int64, int64, int, float64, float64, float64, int64) {
 	if len(f.BwdPackets) == 0 {
-		return 0, 0, 0, 0, 0, 0
+		return 0, 0, 0, 0, 0, 0, 0
 	}
 	BwdPacketLengthMin := f.BwdPackets[0].Length
 	// max :=f.BwdPackets[0]
 	var BwdTotPacketLength int64 = 0
 	var BwdTotPackets int64 = 0
 	var BwdPacketRate float64 = 0
-
+	var BwdHeaderLength int64 = 0
 	for _, pkt := range f.BwdPackets {
 		BwdTotPacketLength += int64(pkt.Length)
+		BwdHeaderLength += int64(pkt.HeaderLength)
 		BwdTotPackets += 1
 		if pkt.Length < BwdPacketLengthMin {
 			BwdPacketLengthMin = pkt.Length
@@ -141,8 +148,9 @@ func (f Flow) GetBwdPacketStats() (int64, int64, int, float64, float64, float64)
 		BwdPacketRate = float64(BwdTotPacketLength) / float64(f.LastTime-f.StartTime)
 	}
 
-	return BwdTotPacketLength, BwdTotPackets, BwdPacketLengthMin, BwdPacketLengthStd, BwdPacketLengthMean, BwdPacketRate
+	return BwdTotPacketLength, BwdTotPackets, BwdPacketLengthMin, BwdPacketLengthStd, BwdPacketLengthMean, BwdPacketRate, BwdHeaderLength
 }
+
 func (f Flow) GetBwdPacketsStd(BwdTotPackets int64, BwdPacketLengthMean float64) float64 {
 	var sum float64 = 0
 	for _, packet := range f.BwdPackets {
@@ -152,15 +160,17 @@ func (f Flow) GetBwdPacketsStd(BwdTotPackets int64, BwdPacketLengthMean float64)
 	std := math.Sqrt(sum / float64(BwdTotPackets))
 	return std
 }
-func (f Flow) GetFwdPacketStats() (int64, int64) {
+func (f Flow) GetFwdPacketStats() (int64, int64, float64) {
 	var FwdHeaderLength int64 = 0
 	var FwdTotPackets int64 = 0
-
+	var FwdPacketRate float64 = 0
 	for _, pkt := range f.FwdPackets {
 		FwdHeaderLength += int64(pkt.HeaderLength)
 		FwdTotPackets += 1
 	}
-	return FwdHeaderLength, FwdTotPackets
+	flowDuration := f.GetFlowDuration()
+	FwdPacketRate = float64(FwdTotPackets) / float64(flowDuration)
+	return FwdHeaderLength, FwdTotPackets, FwdPacketRate
 }
 func (f Flow) GetPacketStats() (float64, float64) {
 	var TotPackets int64 = 0
@@ -193,9 +203,9 @@ func (f Flow) GetPacketsStd(TotPackets int64, PacketLengthMean float64) float64 
 	return std
 }
 
-func (f Flow) GetIATStats() (int64, int64, int64) {
+func (f Flow) GetIATStats() (int64, int64, int64, int64) {
 	if len(f.Flow_IAT_Arr) == 0 {
-		return 0, 0, 0
+		return 0, 0, 0, 0
 	}
 	FlowIATMin := f.Flow_IAT_Arr[0]
 	FlowIATMax := f.Flow_IAT_Arr[0]
@@ -209,7 +219,18 @@ func (f Flow) GetIATStats() (int64, int64, int64) {
 			FlowIATMax = IAT
 		}
 	}
-	return FlowIATMax, FlowIATMin, FlowIATTotal
+	//Fwd IAT
+	if len(f.Fwd_IAT_Arr) == 0 {
+		return FlowIATMax, FlowIATMin, FlowIATTotal, 0
+	}
+	fwd_min_IAT := f.Fwd_IAT_Arr[0]
+	for _, IAT := range f.Fwd_IAT_Arr {
+		if IAT < fwd_min_IAT {
+			fwd_min_IAT = IAT
+		}
+	}
+
+	return FlowIATMax, FlowIATMin, FlowIATTotal, fwd_min_IAT
 }
 
 func (f Flow) GetFlowDuration() int64 {
@@ -220,25 +241,35 @@ func (f Flow) GetLastCheckDuration() int64 {
 	return time.Now().UnixMilli() - f.LastCheck
 }
 
-func (f Flow) GetFin(pkt Packet) bool {
+func (f Flow) GetFin(pkt Packet) (bool, bool) {
+	isFin, isPsh := false, false
 	for _, flag := range pkt.TCPFlags {
 		if flag == "FIN" {
-			return true
+			isFin = true
+		}
+		if flag == "PSH" {
+			isPsh = true
 		}
 
 	}
-	return false
+	return isFin, isPsh
 }
 
 func (f Flow) GetFullFeatures() map[string]interface{} {
 	// BwdTotPacketLength, BwdTotPackets, BwdPacketLengthMin, BwdPacketLengthStd, BwdPacketLengthMean, BwdPacketRate := f.GetBwdPacketStats()
-	BwdTotPacketLength, BwdTotPackets, BwdPacketLengthMin, _, BwdPacketLengthMean, BwdPacketRate := f.GetBwdPacketStats()
+	BwdTotPacketLength,
+		BwdTotPackets,
+		BwdPacketLengthMin,
+		_,
+		BwdPacketLengthMean,
+		BwdPacketRate,
+		GetBwdPacketStats := f.GetBwdPacketStats()
 
-	FwdHeaderLength, FwdTotPackets := f.GetFwdPacketStats()
+	FwdHeaderLength, FwdTotPackets, FwdPacketRate := f.GetFwdPacketStats()
 	AveragePacketSize, PacketLengthStd := f.GetPacketStats()
 
-	// FlowIATMax, FlowIATMin, FlowIATTotal := f.GetIATStats()
-	_, FlowIATMin, _ := f.GetIATStats()
+	FlowIATMax, FlowIATMin, FlowIATTotal, fwd_min_IAT := f.GetIATStats()
+	// _, FlowIATMin, _ := f.GetIATStats()
 
 	fullFeatures := map[string]interface{}{
 		"Init_Win_bytes_forward":  uint64(f.InitWinBytesFwd),
@@ -253,10 +284,11 @@ func (f Flow) GetFullFeatures() map[string]interface{} {
 		"Total Length of Bwd Packets": BwdTotPacketLength,
 		"Bwd Packet Length Min":       uint64(BwdPacketLengthMin),
 		"Fwd Header Length":           FwdHeaderLength,
+		"Bwd Header Length":           GetBwdPacketStats,
 		"Total Backward Packets":      BwdTotPackets,
 		"Total Length of Fwd Packets": FwdTotPackets,
 		"Bwd Packet Length Mean":      BwdPacketLengthMean,
-		"Flow IAT Min":                FlowIATMin,
+		"Fwd Packets/s":               FwdPacketRate,
 
 		// "Protocol":        f.Protocol,
 		// "MyDeviceIP":      f.MyDeviceIP,
@@ -268,8 +300,10 @@ func (f Flow) GetFullFeatures() map[string]interface{} {
 		// //Calculated Features
 		// "BwdPacketLengthStd":  BwdPacketLengthStd,
 		// // "IdleMin":            strconv.FormatInt(IdleMin, 10),
-		// "FlowIATMax":   FlowIATMax,
-		// "FlowIATTotal": FlowIATTotal,
+		"Flow IAT Min": FlowIATMin,
+		"FlowIATMax":   FlowIATMax,
+		"FlowIATTotal": FlowIATTotal,
+		"FWD IAT Min":  fwd_min_IAT,
 	}
 
 	return fullFeatures
@@ -289,7 +323,6 @@ func (f *Flow) SendFlowData() bool {
 	// detectorUrl := "http://127.0.0.1:4000/detect"
 	// detectorUrl := "http://ids-model-service.default.svc.cluster.local:1935/detect"
 	// detectorUrl := "http://10.102.223.78:1935/detect"
-
 
 	req, err := http.NewRequest("POST", detectorUrl, bytes.NewBuffer(jsonData))
 	if err != nil {

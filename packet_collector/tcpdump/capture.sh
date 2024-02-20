@@ -49,7 +49,8 @@ while true; do
     sleep 3
     # Run Go code to process the two latest pcap files
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments
-    sudo /usr/local/go/bin/go run .
+    # sudo /usr/local/go/bin/go run .
+    sudo /usr/local/go/bin/go run readpcap.go
     # ./packet_collector
     # Repeat indefinitely
     sleep 5

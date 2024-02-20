@@ -14,10 +14,10 @@ while true; do
         
     # Loop over each interface and start tcpdump in the background
     duration=10
-    # host_ip="172.16.189.72" #Ingress-nginx
-    host_ip="172.16.189.71"
+    host_ip="172.16.189.72" #Ingress-nginx
+    # host_ip="172.16.189.71"
     # Insert the kubernetes IPs here
-    # excluded_ips=("10.96.0.1" "172.16.166.128" "172.16.235.129" "192.168.50.228")
+    excluded_ips=("10.96.0.1" "172.16.166.128" "172.16.235.129" "192.168.50.228")
     # excluded_ips=("10.96.0.1" "172.16.166.128" "172.16.235.129")
     filter_condition="host $host_ip"
     for ip in "${excluded_ips[@]}"; do

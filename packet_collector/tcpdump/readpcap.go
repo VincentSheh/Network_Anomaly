@@ -13,7 +13,7 @@ import (
 func main() {
 
 	// Read files
-	file_initial := "./capture_*"
+	file_initial := "./capture*"
 	files, _ := filepath.Glob(file_initial)
 
 	for _, file := range files {

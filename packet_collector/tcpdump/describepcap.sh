@@ -41,7 +41,7 @@ while true; do
     # joincap -w "$filename" "${pcap_files[@]}"
     # echo "Merged pcap files into $filename"
 
-    tcpdump -i "$intf" "$filter_condition" -w "capture.pcap"
+    tcpdump -i enp0s3 "$filter_condition" -w "capture.pcap"
     # Delete the oldest pcap file
     # Find all pcap files, sort them, and delete all but the two most recent
     # ls -1tr capture_*.pcap | head -n -2 | xargs -d '\n' rm -f --

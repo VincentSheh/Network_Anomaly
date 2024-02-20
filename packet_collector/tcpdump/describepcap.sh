@@ -16,7 +16,7 @@ while true; do
     duration=10
     host_ip="192.168.50.157"
     # Insert the kubernetes IPs here
-    excluded_ips=("10.96.0.1" "192.168.50.112" "192.168.50.157" "192.168.50.228")
+    excluded_ips=("10.96.0.1" "192.168.50.112" "192.168.50.228")
     filter_condition="host $host_ip"
     for ip in "${excluded_ips[@]}"; do
             filter_condition+=" and not host $ip"

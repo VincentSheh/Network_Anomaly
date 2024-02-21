@@ -14,7 +14,7 @@ while true; do
         
     # Loop over each interface and start tcpdump in the background
     duration=10
-    host_ip="192.168.50.157"
+    host_ip="192.168.50.30"
     # Insert the kubernetes IPs here
     excluded_ips=("10.96.0.1" "192.168.50.112" "192.168.50.228")
     filter_condition="host $host_ip"

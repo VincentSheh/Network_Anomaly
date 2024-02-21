@@ -29,20 +29,25 @@ while true; do
         # fi
     done    
     
-    for intf in "${netInterfaces[@]}"; do
-        filename="${intf}_capture.pcap"
-        pcap_files+=("$filename") # Add filename to array
-        echo "Starting packet capture on $intf for $duration seconds"
-        timeout "$duration" tcpdump -i "$intf" "$filter_condition" -w "$filename" &
-    done
+    # for intf in "${netInterfaces[@]}"; do
+    #     filename="${intf}_capture.pcap"
+    #     pcap_files+=("$filename") # Add filename to array
+    #     echo "Starting packet capture on $intf for $duration seconds"
+    #     timeout "$duration" tcpdump -i "$intf" "$filter_condition" -w "$filename" &
+    # done
 
-    # Wait for all tcpdump processes to finish
-    wait
+    # # Wait for all tcpdump processes to finish
+    # wait
 
-    # Merge pcap files into one using joincap
+    # # Merge pcap files into one using joincap
+    # filename="capture_$(date +%Y%m%d%H%M%S).pcap"
+    # joincap -w "$filename" "${pcap_files[@]}"
+    # echo "Merged pcap files into $filename"
+
     filename="capture_$(date +%Y%m%d%H%M%S).pcap"
-    joincap -w "$filename" "${pcap_files[@]}"
-    echo "Merged pcap files into $filename"
+    timeout "$duration" tcpdump -i "$intf" "$filter_condition" -w "$filename" &
+    echo "Pcap files created $filename"
+
 
     # Delete the oldest pcap file
     # Find all pcap files, sort them, and delete all but the two most recent

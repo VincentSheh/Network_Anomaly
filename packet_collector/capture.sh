@@ -2,13 +2,22 @@
 
 while true; do
     #csv Filename
-    while getopts f: flag
+    usage() {
+        echo "Usage: $0 -f filename"
+        echo "  -f    specify the CSV filename"
+        echo "  -h    display this help message"
+        exit 1
+    }
+
+    csvFilename="output.csv"    
+    while getopts hf: flag
     do
         case "${flag}" in
-            f) filename=${OPTARG};;
+            h) usage;;
+            f) csvFilename=${OPTARG};;
         esac
     done
-    echo $filename
+    echo $csvFilename
     # Run packet capture for 5 minutes
     # Duration for tcpdump to run on each interface
     duration=30
@@ -67,7 +76,7 @@ while true; do
     # Run Go code to process the two latest pcap files
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments
     # sudo /usr/local/go/bin/go run .
-    sudo /usr/local/go/bin/go run . --filename=
+    sudo /usr/local/go/bin/go run . --filename=$csvFilename
     # ./packet_collector
     # Repeat indefinitely
     sleep 5

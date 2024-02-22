@@ -16,10 +16,12 @@ while true; do
     duration=10
     # host_ip="172.16.189.72" #Ingress-nginx
     # host_ip="172.16.189.71" #Metallb
-    host_ip="172.16.166.128" #???
+    host_ip="192.168.50.30" #Ingress-nginx external IP
     # Insert the kubernetes IPs here
     # excluded_ips=("10.96.0.1" "172.16.189.73" "172.16.166.128" "172.16.235.129" "192.168.50.228")
     # excluded_ips=("10.96.0.1" "172.16.189.73" "172.16.166.128" "172.16.235.129")
+    excluded_ips=("192.168.50.112" "192.168.50.228")
+
     filter_condition="host $host_ip"
     for ip in "${excluded_ips[@]}"; do
         # if [ -z "$filter_condition"]; then
@@ -29,20 +31,26 @@ while true; do
         # fi
     done    
     
-    for intf in "${netInterfaces[@]}"; do
-        filename="${intf}_capture.pcap"
-        pcap_files+=("$filename") # Add filename to array
-        echo "Starting packet capture on $intf for $duration seconds"
-        timeout "$duration" tcpdump -i "$intf" "$filter_condition" -w "$filename" &
-    done
+    # for intf in "${netInterfaces[@]}"; do
+    #     filename="${intf}_capture.pcap"
+    #     pcap_files+=("$filename") # Add filename to array
+    #     echo "Starting packet capture on $intf for $duration seconds"
+    #     timeout "$duration" tcpdump -i "$intf" "$filter_condition" -w "$filename" &
+    # done
 
-    # Wait for all tcpdump processes to finish
-    wait
+    # # Wait for all tcpdump processes to finish
+    # wait
 
-    # Merge pcap files into one using joincap
+    # # Merge pcap files into one using joincap
+    # filename="capture_$(date +%Y%m%d%H%M%S).pcap"
+    # joincap -w "$filename" "${pcap_files[@]}"
+    # echo "Merged pcap files into $filename"
+
     filename="capture_$(date +%Y%m%d%H%M%S).pcap"
-    joincap -w "$filename" "${pcap_files[@]}"
-    echo "Merged pcap files into $filename"
+    timeout "$duration" tcpdump -i enp0s3 "$filter_condition" -w "$filename" &
+    wait
+    echo "Pcap files created $filename"
+
 
     # Delete the oldest pcap file
     # Find all pcap files, sort them, and delete all but the two most recent
@@ -51,7 +59,7 @@ while true; do
     # Run Go code to process the two latest pcap files
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments
     # sudo /usr/local/go/bin/go run .
-    sudo /usr/local/go/bin/go run readpcap.go
+    sudo /usr/local/go/bin/go run .
     # ./packet_collector
     # Repeat indefinitely
     sleep 5

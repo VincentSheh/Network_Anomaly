@@ -5,45 +5,54 @@ import (
 	"attack/portscan"
 	"bufio"
 	"fmt"
-	"net"
+	"net/http"
 	"os"
 	"strings"
 	"time"
-
-	"github.com/tatsushid/go-fastping"
 )
 
-//	type PortScanner struct {
-//		ip   string
-//		lock *semaphore.Weighted
-//	}
-func pingIP(ip string) bool {
-	var isValidIp bool = false
-	p := fastping.NewPinger()
-	ra, err := net.ResolveIPAddr("ip4:icmp", ip)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	p.AddIPAddr(ra)
-	p.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
-		fmt.Printf("IP Addr: %s receive, RTT: %v\n", addr.String(), rtt)
-		isValidIp = true
-	}
-	p.OnIdle = func() {
-		if isValidIp {
-			fmt.Println("The IP address is valid and reachable.")
-		} else {
-			fmt.Println("The IP address is not reachable.")
-		}
-		fmt.Println("Finish")
-	}
-	err = p.Run()
+// func pingIP(ip string) bool {
+// 	var isValidIp bool = false
+// 	p := fastping.NewPinger()
+// 	ra, err := net.ResolveIPAddr("ip4:icmp", ip)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		os.Exit(1)
+// 	}
+// 	p.AddIPAddr(ra)
+// 	p.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
+// 		fmt.Printf("IP Addr: %s receive, RTT: %v\n", addr.String(), rtt)
+// 		isValidIp = true
+// 	}
+// 	p.OnIdle = func() {
+// 		if isValidIp {
+// 			fmt.Println("The IP address is valid and reachable.")
+// 		} else {
+// 			fmt.Println("The IP address is not reachable.")
+// 		}
+// 		fmt.Println("Finish")
+// 	}
+// 	err = p.Run()
 
-	if err != nil {
-		fmt.Println(err)
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
+// 	return isValidIp
+// }
+
+func httpGetRequest(url string) bool {
+	client := &http.Client{
+		Timeout: 5 * time.Second, // Set a timeout to avoid hanging
 	}
-	return isValidIp
+	resp, err := client.Get(url)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return false
+	}
+	defer resp.Body.Close()
+
+	// Check if the HTTP status code is in the 200-299 range
+	return resp.StatusCode >= 200 && resp.StatusCode <= 299
 }
 func main() {
 	//Get User Input
@@ -58,7 +67,7 @@ func main() {
 	// target := "127.0.0.1"
 	// att := "portscan"
 	// PING the ip
-	isValidIp := pingIP((host))
+	isValidIp := httpGetRequest((host))
 	if !isValidIp {
 		return
 	}

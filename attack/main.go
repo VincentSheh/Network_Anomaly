@@ -3,9 +3,11 @@ package main
 import (
 	"attack/dos"
 	"attack/portscan"
+	"bufio"
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/tatsushid/go-fastping"
@@ -45,32 +47,32 @@ func pingIP(ip string) bool {
 }
 func main() {
 	//Get User Input
-	// reader := bufio.NewReader(os.Stdin)
-	// fmt.Printf("Which Attack do u want to perform ")
-	// att, _ := reader.ReadString('\n')
-	// att = strings.TrimSpace(att)
-	// reader = bufio.NewReader(os.Stdin)
-	// fmt.Printf("Specify a target host")
-	// host, _ := reader.ReadString('\n')
-	// host = strings.TrimSpace(host)
-	target := "127.0.0.1"
-	att := "portscan"
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Printf("Which Attack do u want to perform ")
+	att, _ := reader.ReadString('\n')
+	att = strings.TrimSpace(att)
+	reader = bufio.NewReader(os.Stdin)
+	fmt.Printf("Specify a target host ")
+	host, _ := reader.ReadString('\n')
+	host = strings.TrimSpace(host)
+	// target := "127.0.0.1"
+	// att := "portscan"
 	// PING the ip
-	isValidIp := pingIP((target))
+	isValidIp := pingIP((host))
 	if !isValidIp {
 		return
 	}
 
 	if att == "dos" { //This is just DoS not dos
 		n_workers := 100
-		fmt.Printf("Performing dos on %s with  %d workers\n", target, n_workers)
-		dos.Run_dos(n_workers, target)
+		fmt.Printf("Performing dos on %s with  %d workers\n", host, n_workers)
+		dos.Run_dos(n_workers, host)
 
 	}
 	if att == "portscan" {
 
-		fmt.Printf("Performing Portscan on %s\n", target)
-		portscan.RunPortscan(target)
+		fmt.Printf("Performing Portscan on %s\n", host)
+		portscan.RunPortscan(host)
 		// Perform Pinging
 
 	}

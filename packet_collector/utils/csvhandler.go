@@ -45,6 +45,12 @@ func WriteMapsToCSV(maps []map[string]interface{}, filename string) {
 		"Total Length of Fwd Packets",
 		"Bwd Packet Length Mean",
 		"Flow IAT Min",
+		"Flow IAT Max",
+		"Flow IAT Total",
+		"Fwd IAT Min",
+		"PSH Flag Count",
+		"Fwd Packets/s",
+		"Bwd Header Length",
 	}
 	if new != nil { //If file does not exist
 		writer.Write(header)

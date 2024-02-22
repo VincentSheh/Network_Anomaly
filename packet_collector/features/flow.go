@@ -305,7 +305,7 @@ func (f Flow) GetFullFeatures() map[string]interface{} {
 		"Flow IAT Min":   FlowIATMin,
 		"Flow IAT Max":   FlowIATMax,
 		"Flow IAT Total": FlowIATTotal,
-		"FWD IAT Min":    fwd_min_IAT,
+		"Fwd IAT Min":    fwd_min_IAT,
 		"PSH Flag Count": f.Psh,
 	}
 

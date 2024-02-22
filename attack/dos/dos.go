@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"runtime"
 	"sync/atomic"
-	"time"
 )
 
 // dos - structure of value for dos attack
@@ -80,15 +79,15 @@ func (d dos) Result() (successRequest, amountRequests int64) {
 }
 
 func Run_dos(n_workers int, target string) {
-	workers := n_workers
+	// workers := n_workers
 	url := target
-	d, err := New(url, workers)
-	if err != nil {
-		panic(err)
-	}
-	d.Run()
-	time.Sleep(time.Second)
-	d.Stop()
+	// d, err := New(url, workers)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// // d.Run()
+	// time.Sleep(time.Second)
+	// d.Stop()
 	fmt.Printf("dos attack server: %s \n", url)
 	// Output: dos attack server: http://127.0.0.1:80
 }

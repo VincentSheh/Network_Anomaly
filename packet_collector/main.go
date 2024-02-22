@@ -165,7 +165,7 @@ func processPackets(
 	}
 	// volumePath := "/pv/pv1/"
 	volumePath := "./"
-	utils.WriteMapsToCSV(featuresList, volumePath+"output.csv")
+	utils.WriteMapsToCSV(featuresList, volumePath+filename)
 	// TODO3-2: Save to CSV
 	utils.WriteBWL_toCSV((*BWList))
 	return iterCount, iterDuration

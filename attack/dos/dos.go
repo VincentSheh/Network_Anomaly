@@ -86,7 +86,7 @@ func Run_dos(n_workers int, target string) {
 	if err != nil {
 		panic(err)
 	}
-	// d.Run()
+	d.Run()
 	time.Sleep(time.Second)
 	d.Stop()
 	fmt.Printf("dos attack server: %s \n", url)

@@ -1,6 +1,14 @@
 #!/bin/bash
 
 while true; do
+    #csv Filename
+    while getopts f: flag
+    do
+        case "${flag}" in
+            f) filename=${OPTARG};;
+        esac
+    done
+    echo $filename
     # Run packet capture for 5 minutes
     # Duration for tcpdump to run on each interface
     duration=10
@@ -59,7 +67,7 @@ while true; do
     # Run Go code to process the two latest pcap files
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments
     # sudo /usr/local/go/bin/go run .
-    sudo /usr/local/go/bin/go run .
+    sudo /usr/local/go/bin/go run . --filename=
     # ./packet_collector
     # Repeat indefinitely
     sleep 5

@@ -1,23 +1,24 @@
 #!/bin/bash
 
-while true; do
-    #csv Filename
-    usage() {
-        echo "Usage: $0 -f filename"
-        echo "  -f    specify the CSV filename"
-        echo "  -h    display this help message"
-        exit 1
-    }
+#csv Filename
+usage() {
+    echo "Usage: $0 -f filename"
+    echo "  -f    specify the CSV filename"
+    echo "  -h    display this help message"
+    exit 1
+}
 
-    csvFilename="output.csv"    
-    while getopts hf: flag
-    do
-        case "${flag}" in
-            h) usage;;
-            f) csvFilename=${OPTARG};;
-        esac
-    done
-    echo $csvFilename
+csvFilename="output.csv"    
+while getopts hf: flag
+do
+    case "${flag}" in
+        h) usage;;
+        f) csvFilename=${OPTARG};;
+    esac
+done
+echo $csvFilename
+while true; do
+
     # Run packet capture for 5 minutes
     # Duration for tcpdump to run on each interface
     duration=30
@@ -72,12 +73,11 @@ while true; do
     # Delete the oldest pcap file
     # Find all pcap files, sort them, and delete all but the two most recent
     ls -1tr capture_*.pcap | head -n -2 | xargs -d '\n' rm -f --
-    sleep 3
     # Run Go code to process the two latest pcap files
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments
     # sudo /usr/local/go/bin/go run .
     sudo /usr/local/go/bin/go run . --filename=$csvFilename
     # ./packet_collector
     # Repeat indefinitely
-    sleep 5
+    # sleep 5
 done

@@ -17,6 +17,7 @@ do
     esac
 done
 echo $csvFilename
+
 while true; do
 
     # Run packet capture for 5 minutes

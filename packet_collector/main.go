@@ -12,6 +12,7 @@ import (
 	// "runtime"
 
 	// "strings"
+	"flag"
 	"time"
 
 	"github.com/google/gopacket"
@@ -64,6 +65,7 @@ func processPackets(
 	recFlows *map[gopacket.Flow]*features.Flow,
 	BWList *map[string]utils.BWInfo,
 	local_ip string,
+	filename string,
 ) (int, int64) {
 
 	//Start
@@ -170,7 +172,11 @@ func processPackets(
 }
 
 func main() {
-	local_ip := "172.16.189.72"
+	var filename string
+	flag.StringVar(&filename, "filename", "output.csv", "CSV Filename")
+	flag.Parse()
+
+	local_ip := "192.168.50.30"
 	fmt.Printf("Running Packet Filtering in %s \n", local_ip)
 
 	// Use Pcap to capture packets
@@ -200,8 +206,7 @@ func main() {
 		// }
 		packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 		defer handle.Close()
-
-		iterCount, iterDuration := processPackets(packetSource, &recFlows, &BWList, local_ip)
+		iterCount, iterDuration := processPackets(packetSource, &recFlows, &BWList, local_ip, filename)
 
 		totIterCount += iterCount
 		totIterDuration += int(iterDuration)

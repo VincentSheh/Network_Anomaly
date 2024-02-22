@@ -11,7 +11,7 @@ while true; do
     echo $filename
     # Run packet capture for 5 minutes
     # Duration for tcpdump to run on each interface
-    duration=10
+    duration=30
 
     # Get all the cali network interface name
     grepInterfaces=$(ip link show | grep -o 'cali[[:alnum:]]*')

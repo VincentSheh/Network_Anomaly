@@ -81,7 +81,7 @@ func processPackets(
 		packet := new(features.Packet)      // Create a pointer to a new Packet instance
 		packet.Init(p, direction, currTime) // Call Init on the pointer
 		// print("PACKET INFO-----\n ")
-		// packet.PrintPacketInfo()
+		packet.PrintPacketInfo()
 
 		//Flow Creation or Add Packet to flow
 		var flow *features.Flow

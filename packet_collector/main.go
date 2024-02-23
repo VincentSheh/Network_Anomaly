@@ -130,8 +130,8 @@ func processPackets(
 			if isWL {
 				isMalicious = false
 			} else {
-				isMalicious = flow.SendFlowData()
-				// isMalicious = Config.Seed.Intn(10) == 0
+				// isMalicious = flow.SendFlowData() //CHANGE THIS
+				isMalicious = Config.Seed.Intn(10) == 0
 
 			}
 

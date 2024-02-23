@@ -52,9 +52,13 @@ while true; do
     echo "Pcap files created $filename"
 
 
+
     # Delete the oldest pcap file
     # Find all pcap files, sort them, and delete all but the two most recent
     ls -1tr capture_*.pcap | head -n -2 | xargs -d '\n' rm -f --
+    #TODOOO: Merge the 2 pcap file into one and go run . on the merged file
+    # filename="capture_$(date +%Y%m%d%H%M%S).pcap"
+    # joincap -w "$merged.pcap" "${pcap_files[@]}"
     sleep 3
     # Run Go code to process the two latest pcap files
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments

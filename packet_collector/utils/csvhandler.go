@@ -80,7 +80,6 @@ func WriteBWL_toCSV(m map[string]BWInfo) {
 	if _, new = os.Stat(filename); new == nil {
 		fmt.Printf("File %s already exists. Not creating a new file.\n", filename)
 		file, _ = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-
 	} else {
 		fmt.Printf("File %s does not exist. Creating a new file.\n", filename)
 		file, _ = os.Create(filename)
@@ -100,5 +99,4 @@ func WriteBWL_toCSV(m map[string]BWInfo) {
 			panic(err)
 		}
 	}
-
 }

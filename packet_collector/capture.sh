@@ -71,6 +71,7 @@ while true; do
     echo "Pcap files created $filename"
 
 
+
     # Delete the oldest pcap file
     # Find all pcap files, sort them, and delete all but the two most recent
     ls -1tr capture_*.pcap | head -n -2 | xargs -d '\n' rm -f --

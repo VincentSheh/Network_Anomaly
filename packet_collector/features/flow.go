@@ -27,8 +27,8 @@ type Flow struct {
 	StartTime int64
 	LastTime  int64
 	LastCheck int64
-	Fin       bool
-	Psh       bool
+	Fin       int64
+	Psh       int64
 
 	InitWinBytesBwd int64 //1.39
 	InitWinBytesFwd int64 //1.24
@@ -88,6 +88,8 @@ func (f *Flow) Init(firstPacket *Packet,
 	f.StartTime = t
 	f.LastTime = t
 	f.LastCheck = t
+	f.Fin = 0
+	f.Psh = 0
 
 	f.AddPacket(*firstPacket)
 }
@@ -118,7 +120,7 @@ func (f *Flow) AddPacket(packet Packet) {
 		}
 
 	}
-	f.Fin, f.Psh = f.GetFin(packet)
+	f.GetFin(packet)
 
 }
 
@@ -241,18 +243,18 @@ func (f Flow) GetLastCheckDuration() int64 {
 	return time.Now().UnixMilli() - f.LastCheck
 }
 
-func (f Flow) GetFin(pkt Packet) (bool, bool) {
-	isFin, isPsh := false, false
+func (f *Flow) GetFin(pkt Packet) {
+	// isFin, isPsh := false, false
 	for _, flag := range pkt.TCPFlags {
 		if flag == "FIN" {
-			isFin = true
+			f.Fin += 1
 		}
 		if flag == "PSH" {
-			isPsh = true
+			f.Psh += 1
 		}
 
 	}
-	return isFin, isPsh
+	// return isFin, isPsh
 }
 
 func (f Flow) GetFullFeatures() map[string]interface{} {
@@ -300,10 +302,11 @@ func (f Flow) GetFullFeatures() map[string]interface{} {
 		// //Calculated Features
 		// "BwdPacketLengthStd":  BwdPacketLengthStd,
 		// // "IdleMin":            strconv.FormatInt(IdleMin, 10),
-		"Flow IAT Min": FlowIATMin,
-		"FlowIATMax":   FlowIATMax,
-		"FlowIATTotal": FlowIATTotal,
-		"FWD IAT Min":  fwd_min_IAT,
+		"Flow IAT Min":   FlowIATMin,
+		"Flow IAT Max":   FlowIATMax,
+		"Flow IAT Total": FlowIATTotal,
+		"Fwd IAT Min":    fwd_min_IAT,
+		"PSH Flag Count": f.Psh,
 	}
 
 	return fullFeatures

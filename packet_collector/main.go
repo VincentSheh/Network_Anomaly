@@ -60,11 +60,13 @@ func getPacketInfo(local_ip string, p *gopacket.Packet) (
 }
 
 func processPackets(
+	maxIterCount int,
 	packetSource *gopacket.PacketSource,
 	recFlows *map[gopacket.Flow]*features.Flow,
 	BWList *map[string]utils.BWInfo,
 	local_ip string,
 	filename string,
+
 ) (int, int64) {
 
 	//Start
@@ -72,7 +74,6 @@ func processPackets(
 	var iterDuration int64 = 0
 	for p := range packetSource.Packets() {
 
-		iterCount++
 		var currTime int64 = time.Now().UnixMilli()
 		pktTimestamp := p.Metadata().Timestamp.UnixMilli()
 
@@ -117,9 +118,9 @@ func processPackets(
 
 		if lastCheckDuration > Config.CheckInterval.Milliseconds() {
 			// if lastCheckDuration > 0 {
-			fmt.Printf("TCP: %s:%s -> %s:%s\n",
-				ipsrc, tcpsrc, ipdst, tcpdst)
-			fmt.Printf("FlowDuration: %d \n", lastCheckDuration)
+			// fmt.Printf("TCP: %s:%s -> %s:%s\n",
+			// 	ipsrc, tcpsrc, ipdst, tcpdst)
+			// fmt.Printf("FlowDuration: %d \n", lastCheckDuration)
 
 			// TODO5: Check BWL: if WL skip inference __DONE__
 
@@ -151,6 +152,14 @@ func processPackets(
 						LastCheck: time.Now(),
 					}
 				}
+			}
+			// Set Maximum Iteration
+			iterCount++
+			if iterCount > maxIterCount {
+				if maxIterCount == 0 {
+					continue
+				}
+				break
 			}
 
 		}
@@ -187,6 +196,7 @@ func main() {
 	// for _, file := range files {
 	// 	fmt.Println(file)
 	// }
+	maxIterCount := 0
 	totIterCount := 0
 	totIterDuration := 0
 	file := "merged.pcap"
@@ -205,7 +215,7 @@ func main() {
 	// }
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	defer handle.Close()
-	iterCount, iterDuration := processPackets(packetSource, &recFlows, &BWList, local_ip, filename)
+	iterCount, iterDuration := processPackets(maxIterCount, packetSource, &recFlows, &BWList, local_ip, filename)
 
 	totIterCount += iterCount
 	totIterDuration += int(iterDuration)

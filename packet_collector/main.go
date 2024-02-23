@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"path/filepath"
 
 	// "net"
 	"packet_collector/features"
@@ -183,40 +182,39 @@ func main() {
 	// handle, err := pcap.OpenLive(*netInterface, 1600, true, pcap.BlockForever) //ifconfig to see active network interface
 
 	// Read files
-	file_initial := "./capture_*"
-	files, err := filepath.Glob(file_initial)
+	// file_initial := "./capture_*"
+	// files, err := filepath.Glob(file_initial)
+	// for _, file := range files {
+	// 	fmt.Println(file)
+	// }
 	totIterCount := 0
 	totIterDuration := 0
-	for _, file := range files {
-		fmt.Println(file)
-	}
+	file := "merged.pcap"
 	recFlows := make(map[gopacket.Flow]*features.Flow)
 	BWList := make(map[string]utils.BWInfo) // Initialize BWList (Seperate from recFlows because key is source address)
-	for _, file := range files {
-		fmt.Printf("------- Reading %s ---------\n", file)
-		handle, err := pcap.OpenOffline(file)
-		if err != nil {
-			log.Printf("Error opening pcap file %s: %v\n", file, err)
-			continue
-		}
-		// var filter string = "tcp" //Add more e.g "tcp and port 80"
-		// err = handle.SetBPFFilter(filter)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-		defer handle.Close()
-		iterCount, iterDuration := processPackets(packetSource, &recFlows, &BWList, local_ip, filename)
 
-		totIterCount += iterCount
-		totIterDuration += int(iterDuration)
+	fmt.Printf("------- Reading %s ---------\n", file)
+	handle, err := pcap.OpenOffline(file)
+	if err != nil {
+		log.Printf("Error opening pcap file %s: %v\n", file, err)
 	}
+	// var filter string = "tcp" //Add more e.g "tcp and port 80"
+	// err = handle.SetBPFFilter(filter)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+	defer handle.Close()
+	iterCount, iterDuration := processPackets(packetSource, &recFlows, &BWList, local_ip, filename)
+
+	totIterCount += iterCount
+	totIterDuration += int(iterDuration)
 
 	if err != nil {
 		log.Fatal((err))
 	}
 
-	//Profiling
+	// Profiling
 	fmt.Printf("Total Number of Packets %d \n", totIterCount)
 	fmt.Printf("Duration of all iterations %d \n", totIterDuration)
 }

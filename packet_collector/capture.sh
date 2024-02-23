@@ -74,6 +74,16 @@ while true; do
     # Delete the oldest pcap file
     # Find all pcap files, sort them, and delete all but the two most recent
     ls -1tr capture_*.pcap | head -n -2 | xargs -d '\n' rm -f --
+    #TODOOO: Merge the 2 pcap file into one and go run . on the merged file
+    filelist=()
+    for file in capture_*; do
+        if [ -e "$file" ]; then # Check if the file exists
+            filelist+=("$file")
+        fi
+    done
+    echo "Reading $filelist \n"
+    joincap -w "merged.pcap" "${pcap_files[@]}"
+
     # Run Go code to process the two latest pcap files
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments
     # sudo /usr/local/go/bin/go run .

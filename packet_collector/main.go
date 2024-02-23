@@ -155,12 +155,12 @@ func processPackets(
 			}
 			// Set Maximum Iteration
 			iterCount++
-			if iterCount > maxIterCount {
-				if maxIterCount == 0 {
-					continue
-				}
-				break
-			}
+			// if iterCount > maxIterCount {
+			// 	if maxIterCount == 0 {
+			// 		continue
+			// 	}
+			// 	break
+			// }
 
 		}
 		endIterTime := time.Now().UnixMilli() - currTime
@@ -200,10 +200,12 @@ func main() {
 	totIterCount := 0
 	totIterDuration := 0
 	file := "merged.pcap"
+
 	recFlows := make(map[gopacket.Flow]*features.Flow)
 	BWList := make(map[string]utils.BWInfo) // Initialize BWList (Seperate from recFlows because key is source address)
 
 	fmt.Printf("------- Reading %s ---------\n", file)
+	startTime := time.Now()
 	handle, err := pcap.OpenOffline(file)
 	if err != nil {
 		log.Printf("Error opening pcap file %s: %v\n", file, err)
@@ -225,6 +227,11 @@ func main() {
 	}
 
 	// Profiling
+	endTime := time.Now()
+	duration := endTime.Sub(startTime)
+
+	fmt.Printf("%d Packets took %s to execute.\n", totIterCount, duration)
+
 	fmt.Printf("Total Number of Packets %d \n", totIterCount)
 	fmt.Printf("Duration of all iterations %d \n", totIterDuration)
 }

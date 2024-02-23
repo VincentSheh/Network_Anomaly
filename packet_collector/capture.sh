@@ -83,7 +83,7 @@ while true; do
         fi
     done
     echo "Reading $filelist \n"
-    joincap -w "merged.pcap" "${pcap_files[@]}"
+    joincap -w "merged.pcap" "${filelist[@]}"
 
     # Run Go code to process the two latest pcap files
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments

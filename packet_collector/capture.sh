@@ -82,7 +82,7 @@ while true; do
             filelist+=("$file")
         fi
     done
-    echo "Reading $filelist \n"
+    echo "Reading $filelist[@] \n"
     joincap -w "merged.pcap" "${filelist[@]}"
 
     # Run Go code to process the two latest pcap files

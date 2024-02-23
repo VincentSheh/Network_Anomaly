@@ -23,6 +23,7 @@ while true; do
     # Run packet capture for 5 minutes
     # Duration for tcpdump to run on each interface
     duration=30
+    duration=10
 
     # Get all the cali network interface name
     grepInterfaces=$(ip link show | grep -o 'cali[[:alnum:]]*')
@@ -32,7 +33,6 @@ while true; do
 
         
     # Loop over each interface and start tcpdump in the background
-    duration=10
     # host_ip="172.16.189.72" #Ingress-nginx
     # host_ip="172.16.189.71" #Metallb
     host_ip="192.168.50.30" #Ingress-nginx external IP
@@ -82,8 +82,12 @@ while true; do
             filelist+=("$file")
         fi
     done
-    echo "Reading $filelist[@] \n"
+    echo "Reading ${filelist[@]} \n"
     joincap -w "merged.pcap" "${filelist[@]}"
+
+    #Concatenate with cumalated pcap file
+    joincap merged.pcap cumulated.pcap -w temp_cumulated.pcap 
+    mv temp_cumulated.pcap cumulated.pcap
 
     # Run Go code to process the two latest pcap files
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments

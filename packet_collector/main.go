@@ -137,22 +137,22 @@ func processPackets(
 
 			// TODO3-1: Add to BWL __DONE__
 			// TODO4: Process BWL => BL exec command line: iptables, __DONE__
-			if isMalicious {
-				(*BWList)[key] = utils.BWInfo{
-					Bw:        "black", //true means black list
-					LastCheck: time.Now(),
-				}
+			// if isMalicious {
+			// 	(*BWList)[key] = utils.BWInfo{
+			// 		Bw:        "black", //true means black list
+			// 		LastCheck: time.Now(),
+			// 	}
 
-				// UNCOMMENT utils.BlackListIP(flow.Client_ip, flow.Client_port)
-			} else { //Check if the duration is enough to be in WL
-				flowDuration := flow.GetFlowDuration()
-				if flowDuration > Config.WLDurationThreshold.Milliseconds() {
-					(*BWList)[key] = utils.BWInfo{
-						Bw:        "white", //true means black list
-						LastCheck: time.Now(),
-					}
-				}
-			}
+			// 	// UNCOMMENT utils.BlackListIP(flow.Client_ip, flow.Client_port)
+			// } else { //Check if the duration is enough to be in WL
+			// 	flowDuration := flow.GetFlowDuration()
+			// 	if flowDuration > Config.WLDurationThreshold.Milliseconds() {
+			// 		(*BWList)[key] = utils.BWInfo{
+			// 			Bw:        "white", //true means black list
+			// 			LastCheck: time.Now(),
+			// 		}
+			// 	}
+			// }
 			// Set Maximum Iteration
 			iterCount++
 			// if iterCount > maxIterCount {

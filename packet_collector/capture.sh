@@ -26,8 +26,8 @@ while true; do
     duration=10
 
     # Get all the cali network interface name
-    grepInterfaces=$(ip link show | grep -o 'cali[[:alnum:]]*')
-    readarray -t netInterfaces <<< "$grepInterfaces"
+    # grepInterfaces=$(ip link show | grep -o 'cali[[:alnum:]]*')
+    # readarray -t netInterfaces <<< "$grepInterfaces"
     # Array to store pcap filenames
     pcap_files=()
 

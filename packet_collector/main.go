@@ -116,9 +116,9 @@ func processPackets(
 
 		// TODO1: Is Time ellapse (of BL/WL/unassigned) > threshold __DONE__
 		lastCheckDuration := flow.GetLastCheckDuration()
+		// if lastCheckDuration > Config.CheckInterval.Milliseconds() {
 
-		if lastCheckDuration > Config.CheckInterval.Milliseconds() {
-			// if lastCheckDuration > 0 {
+		if lastCheckDuration > 0 {
 			// fmt.Printf("TCP: %s:%s -> %s:%s\n",
 			// 	ipsrc, tcpsrc, ipdst, tcpdst)
 			// fmt.Printf("FlowDuration: %d \n", lastCheckDuration)

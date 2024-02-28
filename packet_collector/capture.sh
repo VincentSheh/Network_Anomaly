@@ -66,7 +66,7 @@ while true; do
     # echo "Merged pcap files into $filename"
 
     filename="capture_$(date +%Y%m%d%H%M%S).pcap"
-    timeout "$duration" tcpdump -i enp0s3 "$filter_condition" -w "$filename" &
+    timeout "$duration" tcpdump -i enp0s3 "$filter_condition" -w "$filename"
     wait
     echo "Pcap files created $filename"
 

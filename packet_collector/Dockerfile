@@ -18,6 +18,8 @@ RUN go mod tidy
 # Install joincap
 RUN go get -u github.com/assafmo/joincap
 
+RUN apt-get update && apt-get install -y libpcap-dev
+
 # Build the Go project
 RUN go build .
 
@@ -28,4 +30,4 @@ COPY capture.sh .
 RUN chmod +x capture.sh
 
 # Command to run on container start
-CMD ["./capture.sh"]
+CMD ["./capture.sh", "-f", "test.csv"]

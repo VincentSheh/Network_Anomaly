@@ -126,13 +126,14 @@ func processPackets(
 
 			// TODO2: Send to Detection Model
 			// isMaliciousProb = PostDetection()
-			var isMalicious bool
+			// var isMalicious bool
 			if isWL {
-				isMalicious = false
+				// isMalicious = false
 			} else {
+				_ = flow.SendFlowData() //CHANGE THIS
 				// isMalicious = flow.SendFlowData() //CHANGE THIS
-				isMalicious = Config.Seed.Intn(10) == 0
 
+				// isMalicious = Config.Seed.Intn(10) == 0
 			}
 
 			// TODO3-1: Add to BWL __DONE__

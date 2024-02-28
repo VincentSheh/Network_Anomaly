@@ -16,8 +16,9 @@ COPY . .
 RUN go mod tidy
 
 # Install joincap
-RUN go get -u github.com/assafmo/joincap
-ENV PATH="/go/bin:${PATH}"
+RUN apt-get update && apt-get install -y git && \
+    go install github.com/assafmo/joincap@latest && \
+    export PATH=$PATH:$(go env GOPATH)/bin
 
 RUN apt-get update && apt-get install -y libpcap-dev
 

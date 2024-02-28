@@ -22,9 +22,9 @@ spec:
         image: asture123/ids
         ports:
         - containerPort: 3002
-        args:
-          - "-net-interface"
-          - "enp0s3"
+        # args:
+        #   - "-net-interface"
+        #   - "enp0s3"
         volumeMounts:
         - mountPath: "/pv/pv1"
           name: packetvolume

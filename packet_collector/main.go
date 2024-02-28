@@ -67,10 +67,11 @@ func processPackets(
 	local_ip string,
 	filename string,
 
-) (int, int64) {
+) (int, int64, int) {
 
 	//Start
 	iterCount := 0
+	detectCount := 0
 	var iterDuration int64 = 0
 	for p := range packetSource.Packets() {
 
@@ -131,6 +132,7 @@ func processPackets(
 				// isMalicious = false
 			} else {
 				_ = flow.SendFlowData() //CHANGE THIS
+				detectCount++
 				// isMalicious = flow.SendFlowData() //CHANGE THIS
 
 				// isMalicious = Config.Seed.Intn(10) == 0
@@ -154,16 +156,16 @@ func processPackets(
 			// 		}
 			// 	}
 			// }
-			// Set Maximum Iteration
-			iterCount++
-			// if iterCount > maxIterCount {
-			// 	if maxIterCount == 0 {
-			// 		continue
-			// 	}
-			// 	break
-			// }
-
 		}
+		// Set Maximum Iteration
+		iterCount++
+		// if iterCount > maxIterCount {
+		// 	if maxIterCount == 0 {
+		// 		continue
+		// 	}
+		// 	break
+		// }
+
 		endIterTime := time.Now().UnixMilli() - currTime
 		iterDuration += endIterTime
 
@@ -177,7 +179,7 @@ func processPackets(
 	utils.WriteMapsToCSV(featuresList, volumePath+filename)
 	// TODO3-2: Save to CSV
 	utils.WriteBWL_toCSV((*BWList))
-	return iterCount, iterDuration
+	return iterCount, iterDuration, detectCount
 }
 
 func main() {
@@ -218,7 +220,7 @@ func main() {
 	// }
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	defer handle.Close()
-	iterCount, iterDuration := processPackets(maxIterCount, packetSource, &recFlows, &BWList, local_ip, filename)
+	iterCount, iterDuration, detectCount := processPackets(maxIterCount, packetSource, &recFlows, &BWList, local_ip, filename)
 
 	totIterCount += iterCount
 	totIterDuration += int(iterDuration)
@@ -235,4 +237,5 @@ func main() {
 
 	fmt.Printf("Total Number of Packets %d \n", totIterCount)
 	fmt.Printf("Duration of all iterations %d \n", totIterDuration)
+	fmt.Printf("Detection count: %d \n", detectCount)
 }

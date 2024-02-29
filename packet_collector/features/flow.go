@@ -176,7 +176,6 @@ func (f Flow) GetFwdPacketStats() (int64, int64, float64) {
 	} else {
 		FwdPacketRate = 0
 	}
-	fmt.Printf("ASDDSAASD %f \n", float64(flowDuration))
 
 	return FwdHeaderLength, FwdTotPackets, FwdPacketRate
 }

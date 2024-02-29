@@ -26,7 +26,7 @@ def validated_req_schema(flow_data):
        'Total Length of Fwd Packets', 
        'Bwd Packet Length Mean',
        'Bwd Header Length', #TODO
-       'Packet Length Mean', #TODO SIMILAR To Average Packet Size?
+      #  'Packet Length Mean', #TODO SIMILAR To Average Packet Size?
        'Flow IAT Min']
   # Added
   # Flow IAT Max, Flow IAT Total, Fwd IAT Min, PSH Flag Count, Fwd Packets/s

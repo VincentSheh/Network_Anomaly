@@ -296,7 +296,7 @@ func (f Flow) GetFullFeatures() map[string]interface{} {
 		"Init_Win_bytes_backward": uint64(f.InitWinBytesBwd),
 		"Flow Duration":           f.GetFlowDuration(),
 		"Packet Length Std":       PacketLengthStd,
-		"Destination Port":        f.ClientPort,
+		// "Destination Port":        f.ClientPort,
 		// "MinSegSizeForward":			 MinSegSizeForward,
 		"Average Packet Size": AveragePacketSize,
 

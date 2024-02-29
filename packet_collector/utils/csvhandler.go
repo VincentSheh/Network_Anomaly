@@ -36,7 +36,7 @@ func WriteMapsToCSV(maps []map[string]interface{}, filename string) {
 		"Init_Win_bytes_backward",
 		"Flow Duration",
 		"Packet Length Std",
-		"Destination Port",
+		// "Destination Port",
 		"Average Packet Size",
 		"Total Length of Bwd Packets",
 		"Bwd Packet Length Min",

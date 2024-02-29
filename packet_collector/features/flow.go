@@ -171,7 +171,13 @@ func (f Flow) GetFwdPacketStats() (int64, int64, float64) {
 		FwdTotPackets += 1
 	}
 	flowDuration := f.GetFlowDuration()
-	FwdPacketRate = float64(FwdTotPackets) / float64(flowDuration)
+	if flowDuration > 0 {
+		FwdPacketRate = float64(FwdTotPackets) / float64(flowDuration)
+	} else {
+		FwdPacketRate = 0
+	}
+	fmt.Printf("ASDDSAASD %f \n", float64(flowDuration))
+
 	return FwdHeaderLength, FwdTotPackets, FwdPacketRate
 }
 func (f Flow) GetPacketStats() (float64, float64) {
@@ -317,10 +323,10 @@ func (f *Flow) SendFlowData() bool {
 	//Update lastCheck
 	f.LastCheck = time.Now().UnixMilli()
 	jsonData, err := json.Marshal(f.GetFullFeatures())
-	features := f.GetFullFeatures()
-	for key, value := range features {
-		fmt.Printf("%s: %v\n", key, value)
-	}
+	// features := f.GetFullFeatures()
+	// for key, value := range features {
+	// 	fmt.Printf("%s: %v\n", key, value)
+	// }
 	if err != nil {
 		fmt.Println(err)
 		return false

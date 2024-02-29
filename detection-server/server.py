@@ -15,25 +15,25 @@ def decode_json(request):
 def validated_req_schema(flow_data):
   pruned_features=['Init_Win_bytes_forward', 'Bwd Packets/s',
        'Init_Win_bytes_backward', 'Flow Duration', 'Packet Length Std',
-      #  'PSH Flag Count', #TODO
-      #  'Fwd Packets/s', #TODO
-       'Destination Port', 
+       'PSH Flag Count', #TODO
+       'Fwd Packets/s', #TODO
+      #  'Destination Port', 
       #  'min_seg_size_forward', #TODO
        'Average Packet Size', 
        'Total Length of Bwd Packets', 'Bwd Packet Length Min',
-      #  'Fwd IAT Min', #TODO
+       'Fwd IAT Min', #TODO
        'Fwd Header Length', 'Total Backward Packets',
        'Total Length of Fwd Packets', 
        'Bwd Packet Length Mean',
-      #  'Bwd Header Length', #TODO
-      #  'Packet Length Mean', #TODO SIMILAR To Average Packet Size?
+       'Bwd Header Length', #TODO
+       'Packet Length Mean', #TODO SIMILAR To Average Packet Size?
        'Flow IAT Min']
   # Added
   # Flow IAT Max, Flow IAT Total, Fwd IAT Min, PSH Flag Count, Fwd Packets/s
   # Bwd Header Length, 
 
   df = pd.DataFrame([flow_data])
-  df['Destination Port'] = df['Destination Port'].astype(int)
+  # df['Destination Port'] = df['Destination Port'].astype(int)
   # Select only the required columns
   df_pruned = df[pruned_features]
       

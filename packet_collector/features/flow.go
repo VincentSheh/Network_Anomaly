@@ -205,14 +205,14 @@ func (f Flow) GetPacketStats() (float64, float64) {
 	return AveragePacketSize, PacketLengthStd
 
 }
-func (f Flow) GetPacketsStd(TotPackets int64, PacketLengthMean float64) float64 {
+func (f Flow) GetPacketsStd(TotPackets int64, AveragePacketSize float64) float64 {
 	var sum float64 = 0
 	for _, packet := range f.BwdPackets {
-		diff := (float64(packet.Length) - PacketLengthMean)
+		diff := (float64(packet.Length) - AveragePacketSize)
 		sum += diff * diff
 	}
 	for _, packet := range f.FwdPackets {
-		diff := (float64(packet.Length) - PacketLengthMean)
+		diff := (float64(packet.Length) - AveragePacketSize)
 		sum += diff * diff
 	}
 	if TotPackets == 0 {
@@ -342,8 +342,8 @@ func (f *Flow) SendFlowData() bool {
 		fmt.Println(err)
 		return false
 	}
-	// detectorUrl := "http://192.168.50.221:3001/detect"
-	detectorUrl := "http://idsmodel.com/detect"
+	detectorUrl := "http://192.168.50.115:3001/detect"
+	// detectorUrl := "http://idsmodel.com/detect"
 	// detectorUrl := "http://127.0.0.1:4000/detect"
 	// detectorUrl := "http://ids-model-service.default.svc.cluster.local:1935/detect"
 	// detectorUrl := "http://10.102.223.78:1935/detect"

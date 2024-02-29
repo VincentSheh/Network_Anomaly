@@ -78,7 +78,6 @@ func processPackets(
 		pktTimestamp := p.Metadata().Timestamp.UnixMilli()
 
 		ipsrc, ipdst, tcpsrc, tcpdst, direction, netFlow := getPacketInfo(local_ip, &p)
-		fmt.Printf("PORT %s \n", tcpsrc)
 		packet := new(features.Packet)      // Create a pointer to a new Packet instance
 		packet.Init(p, direction, currTime) // Call Init on the pointer
 		// print("PACKET INFO-----\n ")

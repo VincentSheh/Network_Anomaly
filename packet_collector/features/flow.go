@@ -142,8 +142,14 @@ func (f Flow) GetBwdPacketStats() (int64, int64, int, float64, float64, float64,
 			BwdPacketLengthMin = pkt.Length
 		}
 	}
-	BwdPacketLengthMean := float64(BwdTotPacketLength) / float64(BwdTotPackets)
-	BwdPacketLengthStd := f.GetBwdPacketsStd(BwdTotPackets, BwdPacketLengthMean)
+	var BwdPacketLengthMean, BwdPacketLengthStd float64
+	if BwdTotPackets == 0 {
+		BwdPacketLengthMean = 0
+		BwdPacketLengthStd = 0
+	} else {
+		BwdPacketLengthMean = float64(BwdTotPacketLength) / float64(BwdTotPackets)
+		BwdPacketLengthStd = f.GetBwdPacketsStd(BwdTotPackets, BwdPacketLengthMean)
+	}
 	if f.LastTime == f.StartTime {
 		BwdPacketRate = 0
 	} else {
@@ -158,6 +164,9 @@ func (f Flow) GetBwdPacketsStd(BwdTotPackets int64, BwdPacketLengthMean float64)
 	for _, packet := range f.BwdPackets {
 		diff := (float64(packet.Length) - BwdPacketLengthMean)
 		sum += diff * diff
+	}
+	if BwdTotPackets == 0 {
+		return 0
 	}
 	std := math.Sqrt(sum / float64(BwdTotPackets))
 	return std
@@ -205,6 +214,9 @@ func (f Flow) GetPacketsStd(TotPackets int64, PacketLengthMean float64) float64 
 	for _, packet := range f.FwdPackets {
 		diff := (float64(packet.Length) - PacketLengthMean)
 		sum += diff * diff
+	}
+	if TotPackets == 0 {
+		return 0
 	}
 	std := math.Sqrt(sum / float64(TotPackets))
 	return std

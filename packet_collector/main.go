@@ -66,12 +66,14 @@ func processPackets(
 	local_ip string,
 	filename string,
 
-) (int, int64, int) {
+) (int, int64, int, map[int]int64) {
 
 	//Start
 	iterCount := 0
 	detectCount := 0
 	var iterDuration int64 = 0
+	timeMap := make(map[int]int64)
+
 	for p := range packetSource.Packets() {
 
 		var currTime int64 = time.Now().UnixMilli()
@@ -107,7 +109,7 @@ func processPackets(
 		var isWL bool
 		if info, isExist := (*BWList)[key]; isExist {
 			isWL = info.Bw == "white"
-			if isWL && time.Now().Sub(info.LastCheck) > Config.WLRecheckInterval { //Pass to model
+			if isWL && time.Since(info.LastCheck) > Config.WLRecheckInterval { //Pass to model
 				info.Bw = "recheck"
 				(*BWList)[key] = info
 			}
@@ -116,7 +118,6 @@ func processPackets(
 		// TODO1: Is Time ellapse (of BL/WL/unassigned) > threshold __DONE__
 		lastCheckDuration := flow.GetLastCheckDuration()
 		// if lastCheckDuration > Config.CheckInterval.Milliseconds() {
-
 		if lastCheckDuration > 0 {
 			// fmt.Printf("TCP: %s:%s -> %s:%s\n",
 			// 	ipsrc, tcpsrc, ipdst, tcpdst)
@@ -158,6 +159,7 @@ func processPackets(
 		}
 		// Set Maximum Iteration
 		iterCount++
+
 		if iterCount >= maxIterLimit {
 			if maxIterLimit == 0 {
 				continue
@@ -167,6 +169,10 @@ func processPackets(
 
 		endIterTime := time.Now().UnixMilli() - currTime
 		iterDuration += endIterTime
+
+		if iterCount%1000 == 0 {
+			timeMap[iterCount] = iterDuration
+		}
 
 	}
 	var featuresList []map[string]interface{}
@@ -178,7 +184,7 @@ func processPackets(
 	utils.WriteMapsToCSV(featuresList, volumePath+filename)
 	// TODO3-2: Save to CSV
 	utils.WriteBWL_toCSV((*BWList))
-	return iterCount, iterDuration, detectCount
+	return iterCount, iterDuration, detectCount, timeMap
 }
 
 func main() {
@@ -221,7 +227,7 @@ func main() {
 	// }
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	defer handle.Close()
-	iterCount, iterDuration, detectCount := processPackets(maxIterLimit, packetSource, &recFlows, &BWList, local_ip, filename)
+	iterCount, iterDuration, detectCount, timeMap := processPackets(maxIterLimit, packetSource, &recFlows, &BWList, local_ip, filename)
 
 	totIterCount += iterCount
 	totIterDuration += int(iterDuration)
@@ -239,4 +245,7 @@ func main() {
 	fmt.Printf("Total Number of Packets %d \n", totIterCount)
 	fmt.Printf("Duration of all iterations %d \n", totIterDuration)
 	fmt.Printf("Detection count: %d \n", detectCount)
+	for iter, totDuration := range timeMap {
+		fmt.Printf("[%d, %d], \n", iter, totDuration)
+	}
 }

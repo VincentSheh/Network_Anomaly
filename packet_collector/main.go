@@ -185,6 +185,8 @@ func processPackets(
 func main() {
 	var filename string
 	flag.StringVar(&filename, "filename", "output.csv", "CSV Filename")
+	var maxIterLimit int
+	flag.IntVar(&maxIterLimit, "iterations", 0, "Maximum Iterations")
 	flag.Parse()
 
 	local_ip := "192.168.50.30"
@@ -199,9 +201,7 @@ func main() {
 	// for _, file := range files {
 	// 	fmt.Println(file)
 	// }
-	var maxIterLimit int
-	flag.IntVar(&maxIterLimit, "iterations", 0, "Maximum Iterations")
-	flag.Parse()
+
 	totIterCount := 0
 	totIterDuration := 0
 	file := "merged.pcap"

@@ -317,6 +317,10 @@ func (f *Flow) SendFlowData() bool {
 	//Update lastCheck
 	f.LastCheck = time.Now().UnixMilli()
 	jsonData, err := json.Marshal(f.GetFullFeatures())
+	features := f.GetFullFeatures()
+	for key, value := range features {
+		fmt.Printf("%s: %v\n", key, value)
+	}
 	if err != nil {
 		fmt.Println(err)
 		return false

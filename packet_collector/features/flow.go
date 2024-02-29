@@ -342,8 +342,8 @@ func (f *Flow) SendFlowData() bool {
 		fmt.Println(err)
 		return false
 	}
-	detectorUrl := "http://192.168.50.115:3001/detect"
-	// detectorUrl := "http://idsmodel.com/detect"
+	// detectorUrl := "http://192.168.50.115:3001/detect"
+	detectorUrl := "http://idsmodel.com/detect"
 	// detectorUrl := "http://127.0.0.1:4000/detect"
 	// detectorUrl := "http://ids-model-service.default.svc.cluster.local:1935/detect"
 	// detectorUrl := "http://10.102.223.78:1935/detect"

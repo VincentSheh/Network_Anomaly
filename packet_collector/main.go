@@ -60,7 +60,7 @@ func getPacketInfo(local_ip string, p *gopacket.Packet) (
 }
 
 func processPackets(
-	maxIterCount int,
+	maxIterLimit int,
 	packetSource *gopacket.PacketSource,
 	recFlows *map[gopacket.Flow]*features.Flow,
 	BWList *map[string]utils.BWInfo,
@@ -159,12 +159,12 @@ func processPackets(
 		}
 		// Set Maximum Iteration
 		iterCount++
-		// if iterCount > maxIterCount {
-		// 	if maxIterCount == 0 {
-		// 		continue
-		// 	}
-		// 	break
-		// }
+		if iterCount >= maxIterLimit {
+			if maxIterLimit == 0 {
+				continue
+			}
+			break
+		}
 
 		endIterTime := time.Now().UnixMilli() - currTime
 		iterDuration += endIterTime
@@ -199,7 +199,9 @@ func main() {
 	// for _, file := range files {
 	// 	fmt.Println(file)
 	// }
-	maxIterCount := 0
+	var maxIterLimit int
+	flag.IntVar(&maxIterLimit, "iterations", 0, "Maximum Iterations")
+	flag.Parse()
 	totIterCount := 0
 	totIterDuration := 0
 	file := "merged.pcap"
@@ -220,7 +222,7 @@ func main() {
 	// }
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	defer handle.Close()
-	iterCount, iterDuration, detectCount := processPackets(maxIterCount, packetSource, &recFlows, &BWList, local_ip, filename)
+	iterCount, iterDuration, detectCount := processPackets(maxIterLimit, packetSource, &recFlows, &BWList, local_ip, filename)
 
 	totIterCount += iterCount
 	totIterDuration += int(iterDuration)

@@ -222,7 +222,7 @@ func main() {
 	fmt.Printf("------- Reading %s ---------\n", file)
 	iterMap := make(map[int]int)
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 4; i++ {
 
 		startTime := time.Now()
 		handle, err := pcap.OpenOffline(file)

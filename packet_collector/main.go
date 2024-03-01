@@ -73,110 +73,108 @@ func processPackets(
 	detectCount := 0
 	var iterDuration int64 = 0
 	timeMap := make(map[int]int64)
-	for i := 0; i < 5; i++ {
 
-		for p := range packetSource.Packets() {
+	for p := range packetSource.Packets() {
 
-			var currTime int64 = time.Now().UnixMilli()
-			pktTimestamp := p.Metadata().Timestamp.UnixMilli()
+		var currTime int64 = time.Now().UnixMilli()
+		pktTimestamp := p.Metadata().Timestamp.UnixMilli()
 
-			ipsrc, ipdst, tcpsrc, tcpdst, direction, netFlow := getPacketInfo(local_ip, &p)
-			packet := new(features.Packet)      // Create a pointer to a new Packet instance
-			packet.Init(p, direction, currTime) // Call Init on the pointer
-			// print("PACKET INFO-----\n ")
-			// packet.PrintPacketInfo()
+		ipsrc, ipdst, tcpsrc, tcpdst, direction, netFlow := getPacketInfo(local_ip, &p)
+		packet := new(features.Packet)      // Create a pointer to a new Packet instance
+		packet.Init(p, direction, currTime) // Call Init on the pointer
+		// print("PACKET INFO-----\n ")
+		// packet.PrintPacketInfo()
 
-			//Flow Creation or Add Packet to flow
-			var flow *features.Flow
-			if f, ok := (*recFlows)[netFlow]; ok {
-				flow = f
-				(*recFlows)[netFlow].AddPacket(*packet)
-			} else {
-				flow = new(features.Flow)
-				flow.Init(
-					packet,
-					direction,
-					ipsrc.String(),
-					tcpsrc.String(),
-					ipdst.String(),
-					tcpdst.String(),
-					pktTimestamp,
-				)
-				(*recFlows)[netFlow] = flow
-			}
-
-			// TODO6: Recheck WL / BL => Remove the WL from the BWList, Forward the BL to NFQueue?
-			key := flow.ClientIP + ":" + flow.ClientPort
-			var isWL bool
-			if info, isExist := (*BWList)[key]; isExist {
-				isWL = info.Bw == "white"
-				if isWL && time.Since(info.LastCheck) > Config.WLRecheckInterval { //Pass to model
-					info.Bw = "recheck"
-					(*BWList)[key] = info
-				}
-			}
-
-			// TODO1: Is Time ellapse (of BL/WL/unassigned) > threshold __DONE__
-			lastCheckDuration := flow.GetLastCheckDuration()
-			if lastCheckDuration > Config.CheckInterval.Milliseconds() {
-				// if lastCheckDuration > 0 {
-				// fmt.Printf("TCP: %s:%s -> %s:%s\n",
-				// 	ipsrc, tcpsrc, ipdst, tcpdst)
-				// fmt.Printf("FlowDuration: %d \n", lastCheckDuration)
-
-				// TODO5: Check BWL: if WL skip inference __DONE__
-
-				// TODO2: Send to Detection Model
-				// isMaliciousProb = PostDetection()
-				// var isMalicious bool
-				if isWL {
-					// isMalicious = false
-				} else {
-					// _ = flow.SendFlowData() //CHANGE THIS
-					// detectCount++
-					// isMalicious = flow.SendFlowData() //CHANGE THIS
-
-					// isMalicious = Config.Seed.Intn(10) == 0
-				}
-
-				// TODO3-1: Add to BWL __DONE__
-				// TODO4: Process BWL => BL exec command line: iptables, __DONE__
-				// if isMalicious {
-				// 	(*BWList)[key] = utils.BWInfo{
-				// 		Bw:        "black", //true means black list
-				// 		LastCheck: time.Now(),
-				// 	}
-
-				// 	// UNCOMMENT utils.BlackListIP(flow.Client_ip, flow.Client_port)
-				// } else { //Check if the duration is enough to be in WL
-				// 	flowDuration := flow.GetFlowDuration()
-				// 	if flowDuration > Config.WLDurationThreshold.Milliseconds() {
-				// 		(*BWList)[key] = utils.BWInfo{
-				// 			Bw:        "white", //true means black list
-				// 			LastCheck: time.Now(),
-				// 		}
-				// 	}
-				// }
-			}
-			// Set Maximum Iteration
-			iterCount++
-
-			if iterCount >= maxIterLimit {
-				if maxIterLimit == 0 {
-					continue
-				}
-				break
-			}
-
-			endIterTime := time.Now().UnixMilli() - currTime
-			iterDuration += endIterTime
-
-			if iterCount%10000 == 0 {
-				fmt.Printf("%d Iteration", iterCount)
-				timeMap[iterCount] = iterDuration
-			}
-
+		//Flow Creation or Add Packet to flow
+		var flow *features.Flow
+		if f, ok := (*recFlows)[netFlow]; ok {
+			flow = f
+			(*recFlows)[netFlow].AddPacket(*packet)
+		} else {
+			flow = new(features.Flow)
+			flow.Init(
+				packet,
+				direction,
+				ipsrc.String(),
+				tcpsrc.String(),
+				ipdst.String(),
+				tcpdst.String(),
+				pktTimestamp,
+			)
+			(*recFlows)[netFlow] = flow
 		}
+
+		// TODO6: Recheck WL / BL => Remove the WL from the BWList, Forward the BL to NFQueue?
+		key := flow.ClientIP + ":" + flow.ClientPort
+		var isWL bool
+		if info, isExist := (*BWList)[key]; isExist {
+			isWL = info.Bw == "white"
+			if isWL && time.Since(info.LastCheck) > Config.WLRecheckInterval { //Pass to model
+				info.Bw = "recheck"
+				(*BWList)[key] = info
+			}
+		}
+
+		// TODO1: Is Time ellapse (of BL/WL/unassigned) > threshold __DONE__
+		lastCheckDuration := flow.GetLastCheckDuration()
+		if lastCheckDuration > Config.CheckInterval.Milliseconds() {
+			// if lastCheckDuration > 0 {
+			// fmt.Printf("TCP: %s:%s -> %s:%s\n",
+			// 	ipsrc, tcpsrc, ipdst, tcpdst)
+			// fmt.Printf("FlowDuration: %d \n", lastCheckDuration)
+
+			// TODO5: Check BWL: if WL skip inference __DONE__
+
+			// TODO2: Send to Detection Model
+			// isMaliciousProb = PostDetection()
+			// var isMalicious bool
+			if isWL {
+				// isMalicious = false
+			} else {
+				// _ = flow.SendFlowData() //CHANGE THIS
+				// detectCount++
+				// isMalicious = flow.SendFlowData() //CHANGE THIS
+
+				// isMalicious = Config.Seed.Intn(10) == 0
+			}
+
+			// TODO3-1: Add to BWL __DONE__
+			// TODO4: Process BWL => BL exec command line: iptables, __DONE__
+			// if isMalicious {
+			// 	(*BWList)[key] = utils.BWInfo{
+			// 		Bw:        "black", //true means black list
+			// 		LastCheck: time.Now(),
+			// 	}
+
+			// 	// UNCOMMENT utils.BlackListIP(flow.Client_ip, flow.Client_port)
+			// } else { //Check if the duration is enough to be in WL
+			// 	flowDuration := flow.GetFlowDuration()
+			// 	if flowDuration > Config.WLDurationThreshold.Milliseconds() {
+			// 		(*BWList)[key] = utils.BWInfo{
+			// 			Bw:        "white", //true means black list
+			// 			LastCheck: time.Now(),
+			// 		}
+			// 	}
+			// }
+		}
+		// Set Maximum Iteration
+		iterCount++
+
+		if iterCount >= maxIterLimit {
+			if maxIterLimit == 0 {
+				continue
+			}
+			break
+		}
+
+		endIterTime := time.Now().UnixMilli() - currTime
+		iterDuration += endIterTime
+
+		if iterCount%10000 == 0 {
+			fmt.Printf("%d Iteration", iterCount)
+			timeMap[iterCount] = iterDuration
+		}
+
 	}
 	var featuresList []map[string]interface{}
 	for _, flow := range *recFlows {
@@ -221,37 +219,45 @@ func main() {
 	BWList := make(map[string]utils.BWInfo) // Initialize BWList (Seperate from recFlows because key is source address)
 
 	fmt.Printf("------- Reading %s ---------\n", file)
-	startTime := time.Now()
-	handle, err := pcap.OpenOffline(file)
-	if err != nil {
-		log.Printf("Error opening pcap file %s: %v\n", file, err)
+	iterMap := make(map[int]int)
+
+	for i := 0; i < 5; i++ {
+
+		startTime := time.Now()
+		handle, err := pcap.OpenOffline(file)
+		if err != nil {
+			log.Printf("Error opening pcap file %s: %v\n", file, err)
+		}
+		// var filter string = "tcp" //Add more e.g "tcp and port 80"
+		// err = handle.SetBPFFilter(filter)
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+		defer handle.Close()
+		iterCount, iterDuration, detectCount, timeMap := processPackets(maxIterLimit, packetSource, &recFlows, &BWList, local_ip, filename)
+		totIterCount += iterCount
+		totIterDuration += int(iterDuration)
+		iterMap[totIterCount] = totIterDuration
+		if err != nil {
+			log.Fatal((err))
+		}
+
+		// Profiling
+		endTime := time.Now()
+		duration := endTime.Sub(startTime)
+
+		fmt.Printf("%d Packets took %s to execute.\n", totIterCount, duration)
+
+		fmt.Printf("Total Number of Packets %d \n", totIterCount)
+		fmt.Printf("Duration of all iterations %d \n", totIterDuration)
+		fmt.Printf("Detection count: %d \n", detectCount)
+		for iter, totDuration := range timeMap {
+			fmt.Printf("[%d, %d], \n", iter, totDuration)
+		}
+
 	}
-	// var filter string = "tcp" //Add more e.g "tcp and port 80"
-	// err = handle.SetBPFFilter(filter)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-	defer handle.Close()
-	iterCount, iterDuration, detectCount, timeMap := processPackets(maxIterLimit, packetSource, &recFlows, &BWList, local_ip, filename)
-
-	totIterCount += iterCount
-	totIterDuration += int(iterDuration)
-
-	if err != nil {
-		log.Fatal((err))
-	}
-
-	// Profiling
-	endTime := time.Now()
-	duration := endTime.Sub(startTime)
-
-	fmt.Printf("%d Packets took %s to execute.\n", totIterCount, duration)
-
-	fmt.Printf("Total Number of Packets %d \n", totIterCount)
-	fmt.Printf("Duration of all iterations %d \n", totIterDuration)
-	fmt.Printf("Detection count: %d \n", detectCount)
-	for iter, totDuration := range timeMap {
+	for iter, totDuration := range iterMap {
 		fmt.Printf("[%d, %d], \n", iter, totDuration)
 	}
 }

@@ -117,8 +117,8 @@ func processPackets(
 
 		// TODO1: Is Time ellapse (of BL/WL/unassigned) > threshold __DONE__
 		lastCheckDuration := flow.GetLastCheckDuration()
-		// if lastCheckDuration > Config.CheckInterval.Milliseconds() {
-		if lastCheckDuration > 0 {
+		if lastCheckDuration > Config.CheckInterval.Milliseconds() {
+			// if lastCheckDuration > 0 {
 			// fmt.Printf("TCP: %s:%s -> %s:%s\n",
 			// 	ipsrc, tcpsrc, ipdst, tcpdst)
 			// fmt.Printf("FlowDuration: %d \n", lastCheckDuration)
@@ -131,7 +131,7 @@ func processPackets(
 			if isWL {
 				// isMalicious = false
 			} else {
-				_ = flow.SendFlowData() //CHANGE THIS
+				// _ = flow.SendFlowData() //CHANGE THIS
 				// detectCount++
 				// isMalicious = flow.SendFlowData() //CHANGE THIS
 

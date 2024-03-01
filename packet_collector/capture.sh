@@ -17,7 +17,7 @@ do
     esac
 done
 echo $csvFilename
-./packet_collector --filename test.csv
+sudo ./packet_collector --filename test.csv
 
 
 # while true; do

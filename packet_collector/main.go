@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"runtime"
 
 	// "net"
 	"packet_collector/features"
@@ -171,7 +170,7 @@ func processPackets(
 		endIterTime := time.Now().UnixMilli() - currTime
 		iterDuration += endIterTime
 
-		if iterCount%10000 == 0 {
+		if iterCount%5000 == 0 {
 			fmt.Printf("%d Iteration", iterCount)
 			timeMap[iterCount] = iterDuration
 		}
@@ -220,46 +219,36 @@ func main() {
 	BWList := make(map[string]utils.BWInfo) // Initialize BWList (Seperate from recFlows because key is source address)
 
 	fmt.Printf("------- Reading %s ---------\n", file)
-	iterMap := make(map[int]int)
 
-	for i := 0; i < 4; i++ {
-
-		startTime := time.Now()
-		handle, err := pcap.OpenOffline(file)
-		if err != nil {
-			log.Printf("Error opening pcap file %s: %v\n", file, err)
-		}
-		// var filter string = "tcp" //Add more e.g "tcp and port 80"
-		// err = handle.SetBPFFilter(filter)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
-		defer handle.Close()
-		iterCount, iterDuration, detectCount, timeMap := processPackets(maxIterLimit, packetSource, &recFlows, &BWList, local_ip, filename)
-		totIterCount += iterCount
-		totIterDuration += int(iterDuration)
-		iterMap[totIterCount] = totIterDuration
-		if err != nil {
-			log.Fatal((err))
-		}
-
-		// Profiling
-		endTime := time.Now()
-		duration := endTime.Sub(startTime)
-
-		fmt.Printf("%d Packets took %s to execute.\n", totIterCount, duration)
-
-		fmt.Printf("Total Number of Packets %d \n", totIterCount)
-		fmt.Printf("Duration of all iterations %d \n", totIterDuration)
-		fmt.Printf("Detection count: %d \n", detectCount)
-		for iter, totDuration := range timeMap {
-			fmt.Printf("[%d, %d], \n", iter, totDuration)
-		}
-		runtime.GC()
+	startTime := time.Now()
+	handle, err := pcap.OpenOffline(file)
+	if err != nil {
+		log.Printf("Error opening pcap file %s: %v\n", file, err)
+	}
+	// var filter string = "tcp" //Add more e.g "tcp and port 80"
+	// err = handle.SetBPFFilter(filter)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+	defer handle.Close()
+	iterCount, iterDuration, detectCount, timeMap := processPackets(maxIterLimit, packetSource, &recFlows, &BWList, local_ip, filename)
+	totIterCount += iterCount
+	totIterDuration += int(iterDuration)
+	if err != nil {
+		log.Fatal((err))
 	}
 
-	for iter, totDuration := range iterMap {
+	// Profiling
+	endTime := time.Now()
+	duration := endTime.Sub(startTime)
+
+	fmt.Printf("%d Packets took %s to execute.\n", totIterCount, duration)
+
+	fmt.Printf("Total Number of Packets %d \n", totIterCount)
+	fmt.Printf("Duration of all iterations %d \n", totIterDuration)
+	fmt.Printf("Detection count: %d \n", detectCount)
+	for iter, totDuration := range timeMap {
 		fmt.Printf("[%d, %d], \n", iter, totDuration)
 	}
 

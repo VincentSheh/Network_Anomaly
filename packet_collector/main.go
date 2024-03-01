@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"runtime"
 
 	// "net"
 	"packet_collector/features"
@@ -255,9 +256,11 @@ func main() {
 		for iter, totDuration := range timeMap {
 			fmt.Printf("[%d, %d], \n", iter, totDuration)
 		}
-
+		runtime.GC()
 	}
+
 	for iter, totDuration := range iterMap {
 		fmt.Printf("[%d, %d], \n", iter, totDuration)
 	}
+
 }

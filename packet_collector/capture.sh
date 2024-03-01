@@ -92,8 +92,8 @@ while true; do
     # Run Go code to process the two latest pcap files
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments
     # sudo /usr/local/go/bin/go run .
-    sudo /usr/local/go/bin/go run . --filename=$csvFilename
-    # ./packet_collector --filename test.csv
+    # sudo /usr/local/go/bin/go run . --filename=$csvFilename
+    ./packet_collector --filename test.csv
     # ./packet_collector
     # Repeat indefinitely
     # sleep 5

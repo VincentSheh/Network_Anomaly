@@ -171,6 +171,7 @@ func processPackets(
 		iterDuration += endIterTime
 
 		if iterCount%10000 == 0 {
+			fmt.Printf("%d Iteration", iterCount)
 			timeMap[iterCount] = iterDuration
 		}
 

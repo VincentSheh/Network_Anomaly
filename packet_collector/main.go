@@ -131,7 +131,7 @@ func processPackets(
 			if isWL {
 				// isMalicious = false
 			} else {
-				// _ = flow.SendFlowData() //CHANGE THIS
+				_ = flow.SendFlowData() //CHANGE THIS
 				// detectCount++
 				// isMalicious = flow.SendFlowData() //CHANGE THIS
 

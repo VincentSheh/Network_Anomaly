@@ -170,7 +170,7 @@ func processPackets(
 		endIterTime := time.Now().UnixMilli() - currTime
 		iterDuration += endIterTime
 
-		if iterCount%5000 == 0 {
+		if iterCount%1000 == 0 {
 			fmt.Printf("%d Iteration", iterCount)
 			timeMap[iterCount] = iterDuration
 		}

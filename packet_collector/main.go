@@ -170,7 +170,7 @@ func processPackets(
 		endIterTime := time.Now().UnixMilli() - currTime
 		iterDuration += endIterTime
 
-		if iterCount%1000 == 0 {
+		if iterCount%10000 == 0 {
 			timeMap[iterCount] = iterDuration
 		}
 
@@ -212,7 +212,7 @@ func main() {
 
 	totIterCount := 0
 	totIterDuration := 0
-	file := "merged.pcap"
+	file := "big.pcap"
 
 	recFlows := make(map[gopacket.Flow]*features.Flow)
 	BWList := make(map[string]utils.BWInfo) // Initialize BWList (Seperate from recFlows because key is source address)

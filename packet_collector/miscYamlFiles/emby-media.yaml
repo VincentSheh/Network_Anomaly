@@ -14,7 +14,14 @@ spec:
     spec:
       containers:
       - name: emby-server
-        image: emby/embyserver:4.7.1.0
+        image: emby/embyserver
+        env:
+        - name: UID
+          value: "1000"
+        - name: GID
+          value: "100"
+        - name: GIDLIST
+          value: "100"        
         ports:
         - containerPort: 8096
         - containerPort: 8920

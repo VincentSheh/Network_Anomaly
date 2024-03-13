@@ -52,18 +52,18 @@ metadata:
   labels:
     run: emby-server
 spec:
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: emby-server
   ports:
   - port: 8096
     protocol: TCP
     targetPort: 8096
-    nodePort: 32096
+    # nodePort: 32096
     name: http
   - port: 8920
     protocol: TCP
     targetPort: 8920
-    nodePort: 32120
+    # nodePort: 32120
     name: https
 

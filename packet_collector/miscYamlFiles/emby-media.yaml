@@ -29,11 +29,14 @@ spec:
       - name: emby-config
         persistentVolumeClaim:
           claimName: emby-config-pvc
-      - name: emby-data
+      - name: emby-shows
         persistentVolumeClaim:
-          claimName: emby-data-pvc
+          claimName: emby-shows-pvc
+      - name: emby-movies
+        persistentVolumeClaim:
+          claimName: emby-movies-pvc          
       nodeSelector:
-        nodename: worker3
+        nodename: worker2
 ---
 apiVersion: v1
 kind: Service

@@ -20,7 +20,7 @@ const puppeteer = require('puppeteer');
     const page = await browser.newPage();
 
     await page.goto(
-      `http://embymedia/web/index.html?#!/videos?serverId=50823b7138cd4d4fbe40f4583a34b234&parentId=3&tab=videos`,
+      `http://embymedia.com/web/index.html?#!/videos?serverId=50823b7138cd4d4fbe40f4583a34b234&parentId=3&tab=videos`,
 
     );
     //Choose User Page

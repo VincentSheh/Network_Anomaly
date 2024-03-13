@@ -67,7 +67,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 3Gi
+      storage: 10Gi
   storageClassName: local-storage
 
 ---
@@ -104,5 +104,5 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 3Gi
+      storage: 10Gi
   storageClassName: local-storage

@@ -31,7 +31,10 @@ spec:
       volumes:
       - name: packetvolume
         persistentVolumeClaim:
-          claimName: packet-pvc        
+          claimName: packet-pvc 
+      nodeSelector:
+        nodename: worker2
+
 ---
 apiVersion: v1
 kind: Service

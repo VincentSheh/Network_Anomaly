@@ -9,12 +9,12 @@ const puppeteer = require('puppeteer');
 (async () => {
   try {
     let browser = await puppeteer.launch({
-      headless: false,
+      headless: true,
       args: [
-        `--use-fake-device-for-media-stream`,
-        `--use-fake-ui-for-media-stream`,
+        // `--use-fake-device-for-media-stream`,
+        // `--use-fake-ui-for-media-stream`,
         `--no-sandbox`,
-        `--use-file-for-fake-video-capture=/your/full/path/to/the/video.mjpeg`,
+        '--disable-setuid-sandbox',
       ],
     });
     const page = await browser.newPage();

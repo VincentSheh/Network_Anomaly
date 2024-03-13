@@ -53,6 +53,8 @@ metadata:
     run: emby-server
 spec:
   type: NodePort
+  selector:
+    app: emby-server
   ports:
   - port: 8096
     protocol: TCP
@@ -64,5 +66,4 @@ spec:
     targetPort: 8920
     nodePort: 32120
     name: https
-  selector:
-    run: emby-server
+

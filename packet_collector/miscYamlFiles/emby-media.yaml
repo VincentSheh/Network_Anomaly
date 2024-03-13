@@ -21,7 +21,7 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: emby-server
+  name: emby-server-deployment
 spec:
   replicas: 1
   selector:
@@ -30,7 +30,7 @@ spec:
   template:
     metadata:
       labels:
-        run: emby-server
+        app: emby-server
     spec:
       containers:
       - name: emby-server

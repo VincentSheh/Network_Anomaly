@@ -55,8 +55,7 @@ spec:
   - port: 8920
     protocol: TCP
     targetPort: 8920
-    nodePort: 32920
-
+    nodePort: 32120
     name: https
   selector:
     run: emby-server

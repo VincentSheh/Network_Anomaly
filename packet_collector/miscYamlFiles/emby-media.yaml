@@ -74,7 +74,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: embyserver.com
+  - host: embymedia.com
     http:
       paths:
       - path: /

@@ -22,9 +22,9 @@ spec:
         - mountPath: /config
           name: emby-config
         - mountPath: /mnt/share1
-          name: emby-data
-        # - mountPath: /mnt/share2
-        #   name: emby-s3
+          name: emby-shows
+        - mountPath: /mnt/share2
+          name: emby-movies
       volumes:
       - name: emby-config
         persistentVolumeClaim:

@@ -30,7 +30,7 @@ spec:
         persistentVolumeClaim:
           claimName: emby-config-pvc
       - name: emby-data
-        persistentVolumeClain:
+        persistentVolumeClaim:
           claimName: emby-data-pvc
       nodeSelector:
         nodename: worker3

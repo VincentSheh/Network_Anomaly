@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: emby-server
-        image: emby/embyserver:latest
+        image: emby/embyserver:4.7.1.0
         ports:
         - containerPort: 8096
         - containerPort: 8920

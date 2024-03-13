@@ -18,12 +18,15 @@ spec:
   selector:
     run: emby-server
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: emby-server
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: emby-server
   template:
     metadata:
       labels:

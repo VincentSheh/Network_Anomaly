@@ -1,23 +1,3 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: emby-server
-  labels:
-    run: emby-server
-spec:
-  type: LoadBalancer
-  ports:
-  - port: 8096
-    protocol: TCP
-    targetPort: 8096
-    name: http
-  - port: 8920
-    protocol: TCP
-    targetPort: 8920
-    name: https
-  selector:
-    run: emby-server
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -43,22 +23,34 @@ spec:
           name: emby-config
         - mountPath: /mnt/share1
           name: emby-data
-        - mountPath: /mnt/share2
-          name: emby-s3
+        # - mountPath: /mnt/share2
+        #   name: emby-s3
       volumes:
       - name: emby-config
-        glusterfs:
-          endpoints: gfs-storage
-          path: emby-config
-          readOnly: false
+        persistentVolumeClaim:
+          claimName: emby-config-pvc
       - name: emby-data
-        glusterfs:
-          endpoints: gfs-storage
-          path: emby-share
-          readOnly: false
-      - name: emby-s3
-        hostPath:
-          path: /s3-emby2
-          type: Directory
+        persistentVolumeClain:
+          claimName: emby-data-pvc
       nodeSelector:
-        disktype: sas
+        nodename: worker3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: emby-server
+  labels:
+    run: emby-server
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8096
+    protocol: TCP
+    targetPort: 8096
+    name: http
+  - port: 8920
+    protocol: TCP
+    targetPort: 8920
+    name: https
+  selector:
+    run: emby-server

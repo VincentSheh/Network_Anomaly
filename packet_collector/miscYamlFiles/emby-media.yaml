@@ -52,7 +52,7 @@ metadata:
   labels:
     run: emby-server
 spec:
-  type: LoadBalancer
+  # type: LoadBalancer
   selector:
     app: emby-server
   ports:
@@ -66,4 +66,23 @@ spec:
     targetPort: 8920
     # nodePort: 32120
     name: https
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: emby-server-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: embyserver.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: emby-server
+            port:
+              number: 8096
+
 

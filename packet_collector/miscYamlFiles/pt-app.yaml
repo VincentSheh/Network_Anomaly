@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pt-app-deployment
+  # labels:
+  #   app: tiangolo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pt-app
+  template:
+    metadata:
+      labels:
+        app: pt-app
+    spec:
+      containers:
+      - name: pt-app
+        image: asture123/parking-tracker-app
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pt-app-service
+spec:
+  selector:
+    app: pt-app
+  ports:
+    - protocol: TCP
+      port: 1936
+      targetPort: 3000
+      # nodePort: 30001
+  # type: NodePort
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pt-app-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: parkingtracker.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pt-app-service
+            port:
+              number: 1936

@@ -221,18 +221,18 @@ func main() {
 	fmt.Printf("------- Reading %s ---------\n", file)
 
 	startTime := time.Now()
-	// handle, err := pcap.OpenOffline(file)
-	handle, err := pcap.OpenLive("enp0s3", 1600, true, pcap.BlockForever)
+	handle, err := pcap.OpenOffline(file)
+	// handle, err := pcap.OpenLive("enp0s3", 1600, true, pcap.BlockForever)
 	if err != nil {
 		log.Printf("Error opening pcap file %s: %v\n", file, err)
 	}
 
 	// var filter string = "tcp" //Add more e.g "tcp and port 80"
-	filter := "not host 192.168.50.112 and not host 192.168.50.228"
-	err = handle.SetBPFFilter(filter)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// filter := "not host 192.168.50.112 and not host 192.168.50.228"
+	// err = handle.SetBPFFilter(filter)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
 	defer handle.Close()

@@ -36,7 +36,7 @@ spec:
         persistentVolumeClaim:
           claimName: emby-movies-pvc          
       nodeSelector:
-        nodename: worker2
+        nodename: worker3
 ---
 apiVersion: v1
 kind: Service

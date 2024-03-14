@@ -165,6 +165,8 @@ func processPackets(
 			if maxIterLimit == 0 {
 				continue
 			}
+			fmt.Printf("I RUN")
+			break
 		}
 
 		endIterTime := time.Now().UnixMilli() - currTime

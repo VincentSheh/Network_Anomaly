@@ -75,6 +75,7 @@ func processPackets(
 	timeMap := make(map[int]int64)
 
 	for p := range packetSource.Packets() {
+		fmt.Println("I RUN")
 
 		var currTime int64 = time.Now().UnixMilli()
 		pktTimestamp := p.Metadata().Timestamp.UnixMilli()

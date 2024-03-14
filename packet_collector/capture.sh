@@ -87,8 +87,8 @@ while true; do
     joincap -w "merged.pcap" "${filelist[@]}"
 
     #Concatenate with cumalated pcap file
-    joincap merged.pcap cumulated.pcap -w temp_cumulated.pcap 
-    mv temp_cumulated.pcap cumulated.pcap
+    # joincap merged.pcap cumulated.pcap -w temp_cumulated.pcap 
+    # mv temp_cumulated.pcap cumulated.pcap
 
     # Run Go code to process the two latest pcap files
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments

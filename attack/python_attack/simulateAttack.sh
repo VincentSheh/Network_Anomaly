@@ -3,7 +3,6 @@
 # Define the commands in an array
 commands=(
   "python3 ./dos_ge/goldeneye.py http://parkingtracker.com"
-  "python3 ./dos_hulk_/hulk.py"
   "python3 ./dos_ripper_/DRipper.py -s parkingtracker.com"
 )
 
@@ -15,7 +14,7 @@ for cmd in "${commands[@]}"; do
   # Get the PID of the command just run
   cmd_pid=$!
   # Wait for 180 seconds before killing the command
-  sleep 20
+  sleep 30
   # Kill the command
   kill $cmd_pid
   # Optional: sleep for a bit before starting the next command

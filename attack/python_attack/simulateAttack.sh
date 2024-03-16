@@ -15,7 +15,7 @@ for cmd in "${commands[@]}"; do
   # Get the PID of the command just run
   cmd_pid=$!
   # Wait for 180 seconds before killing the command
-  sleep 180
+  sleep 20
   # Kill the command
   kill $cmd_pid
   # Optional: sleep for a bit before starting the next command

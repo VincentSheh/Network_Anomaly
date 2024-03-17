@@ -15,7 +15,7 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
     while (true){
       const places = ["Taipei 101", "Tamsui", "Ximen", "Taipei Main Station"]
       let browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         args: [
           `--no-sandbox`,
           '--disable-setuid-sandbox',

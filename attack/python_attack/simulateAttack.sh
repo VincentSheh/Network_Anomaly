@@ -17,7 +17,7 @@ for cmd in "${commands[@]}"; do
   # Wait for 180 seconds before attempting to kill the command
   sleep 20
   # Attempt to kill the process
-  pkill -f $cmd
+  pkill -f "$cmd"
 
   # wait $PID
   sleep 5

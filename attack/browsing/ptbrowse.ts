@@ -27,12 +27,13 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
       // Replace 'your_website_with_map.com' with the actual URL
       // await page.goto('http://localhost:3000/map'); 
       await page.goto('http://parkingtracker.com');    
-
+      console.log("Opened New browser")
       for (let i=0;i<getRandomInt(25); i++){
         const searchSelector = '.pac-target-input'; // Using one of the provided classes
+        const place = getRandomPlace(places)
+        console.log("Finding Route to : ", place)
         await page.waitForSelector(searchSelector);
-    
-        await page.type(searchSelector, getRandomPlace(places));
+        await page.type(searchSelector, place);
     
         const goButtonSelector = 'button.px-2.text-white.bg-black.border-l.rounded';
         await page.waitForSelector(goButtonSelector); // Wait for the button to be ready

@@ -26,7 +26,7 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
       // Go to a webpage that contains a Google Map.
       // Replace 'your_website_with_map.com' with the actual URL
       // await page.goto('http://localhost:3000/map'); 
-      await page.goto('http://parkingtracker.com');    
+      await page.goto('http://parkingtracker.com/map');    
       console.log("Opened New browser")
       for (let i=0;i<getRandomInt(25); i++){
         const searchSelector = '.pac-target-input'; // Using one of the provided classes

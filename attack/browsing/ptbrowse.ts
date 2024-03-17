@@ -32,11 +32,11 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
           const searchSelector = '.pac-target-input'; // Using one of the provided classes
           const place = getRandomPlace(places)
           console.log("Finding Route to : ", place)
-          await page.waitForSelector(searchSelector);
+          await page.waitForSelector(searchSelector, {timeout: 5000} );
           await page.type(searchSelector, place);
       
           const goButtonSelector = 'button.px-2.text-white.bg-black.border-l.rounded';
-          await page.waitForSelector(goButtonSelector); // Wait for the button to be ready
+          await page.waitForSelector(goButtonSelector,  {timeout: 5000}); // Wait for the button to be ready
           await page.click(goButtonSelector); // Click the button
           await delay(getRandomInt(10000))
           await page.evaluate((selector) => {

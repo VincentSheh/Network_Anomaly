@@ -15,7 +15,7 @@ for cmd in "${commands[@]}"; do
   # Get the PID of the command just run
   # cmd_pid=$!
   # Wait for 180 seconds before attempting to kill the command
-  sleep 15
+  sleep 30
   # Attempt to kill the process
   pkill -f 'python3 ./dos_ge/goldeneye.py http://parkingtracker.com'
 

@@ -11,16 +11,16 @@ for cmd in "${commands[@]}"; do
   echo "Starting command: $cmd"
 
   # Start the command in the background
-  # $cmd &
+  $cmd &
   # Get the PID of the command just run
-  # cmd_pid=$!
+  cmd_pid=$!
   # Wait for 180 seconds before attempting to kill the command
   sleep 30
   # Attempt to kill the process
   pkill -f 'python3 ./dos_ge/goldeneye.py http://parkingtracker.com'
 
   # wait $PID
-  sleep 10
+  sleep 5
 
 
 done

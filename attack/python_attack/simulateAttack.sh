@@ -15,12 +15,12 @@ for cmd in "${commands[@]}"; do
   # Get the PID of the command just run
   cmd_pid=$!
   # Wait for 180 seconds before attempting to kill the command
-  sleep 30
+  sleep 15
   # Attempt to kill the process
   kill -SIGTERM $PID
 
   wait $PID
-  sleep 5
+  sleep 10
 
 
 done

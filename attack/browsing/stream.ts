@@ -58,6 +58,8 @@ const puppeteer = require('puppeteer');
         // If the above fails, then try clicking the "Play" button
         await page.waitForSelector('button[title="Play"]', { visible: true, timeout: 5000 }); // Additionally wait for up to 5000ms for the selector
         await page.click('button[title="Play"]');
+        await delay(getRandomInt(60000))
+
       }
 
 

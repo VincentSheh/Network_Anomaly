@@ -153,7 +153,7 @@ func (f Flow) GetBwdPacketStats() (int64, int64, int, float64, float64, float64,
 	if f.LastTime == f.StartTime {
 		BwdPacketRate = 0
 	} else {
-		BwdPacketRate = float64(BwdTotPacketLength) / float64(f.LastTime-f.StartTime)
+		BwdPacketRate = float64(BwdTotPackets) / float64(f.LastTime-f.StartTime)
 	}
 
 	return BwdTotPacketLength, BwdTotPackets, BwdPacketLengthMin, BwdPacketLengthStd, BwdPacketLengthMean, BwdPacketRate, BwdHeaderLength

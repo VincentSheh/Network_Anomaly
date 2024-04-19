@@ -63,11 +63,12 @@ const puppeteer = require('puppeteer');
       }
 
 
-      console.log("I RUN")
+      
       // Won't disconnect it, since we want to see it happening
     } catch (err) {
       console.error(err);
     }finally {
+      console.log("Browser Closed")
       if (browser) await browser.close();
     }
   }

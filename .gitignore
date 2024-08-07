@@ -4,3 +4,4 @@
 *.csv
 *.parquet
 node_modules/
+packet_collector/cumulated.pcap

@@ -2,12 +2,22 @@ import numpy as np
 from flask import Flask, request, jsonify
 import pandas as pd
 from xgboost import XGBClassifier
+from sklearn.tree import DecisionTreeClassifier
+import pickle
 
 # Initialize Flask app
 app = Flask(__name__)
 # def load_model():
-model = XGBClassifier(objective='binary:logistic')
-model.load_model("./xgboost_ids.json")  
+# Load XGBoost:
+# model = XGBClassifier(objective='binary:logistic')
+# model.load_model("./clf_loc_xgboost.json")  
+# Load Cart:
+with open('clf_loc_cart.pkl', 'rb') as file:
+  CART = pickle.load(file)
+model = CART
+
+
+
 
 def decode_json(request):
   data = request.json
@@ -54,7 +64,7 @@ def detect():
     isMalicious = perform_inference_sup(input)
     
     
-
+    
     # result = model.predict(park_img, classes=3, conf = 0.4, save=True, verbose=False)
     # ill_result = model.predict(ill_park_img, classes=3, conf = 0.5, save=False , verbose =False)
     return jsonify({"isMalicious": isMalicious}), 200

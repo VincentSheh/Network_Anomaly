@@ -132,7 +132,8 @@ func processPackets(
 			if isWL {
 				// isMalicious = false
 			} else {
-				_ = flow.SendFlowData() //CHANGE THIS
+
+				// _ = flow.SendFlowData() //CHANGE THIS
 				// detectCount++
 				// isMalicious = flow.SendFlowData() //CHANGE THIS
 
@@ -181,7 +182,7 @@ func processPackets(
 	var featuresList []map[string]interface{}
 	for _, flow := range *recFlows {
 		featuresList = append(featuresList, flow.GetFullFeatures())
-		flow.SendFlowData()
+		// flow.SendFlowData()
 		detectCount++
 
 	}

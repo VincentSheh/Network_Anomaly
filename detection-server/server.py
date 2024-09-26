@@ -2,15 +2,34 @@ import numpy as np
 from flask import Flask, request, jsonify
 import pandas as pd
 from xgboost import XGBClassifier
+<<<<<<< HEAD
 from io import StringIO
 import joblib
 from sklearn.preprocessing import StandardScaler
+=======
+from sklearn.tree import DecisionTreeClassifier
+import pickle
+>>>>>>> 2701786c7157aa9ce42f7a4028acb1bcfe30d25f
 
 # Initialize Flask app
 app = Flask(__name__)
 # def load_model():
+<<<<<<< HEAD
 model = joblib.load('cic_xgb.joblib')
 scaler = joblib.load('cic_scaler.joblib')
+=======
+# Load XGBoost:
+# model = XGBClassifier(objective='binary:logistic')
+# model.load_model("./clf_loc_xgboost.json")  
+# Load Cart:
+with open('clf_loc_cart.pkl', 'rb') as file:
+  CART = pickle.load(file)
+model = CART
+
+
+
+
+>>>>>>> 2701786c7157aa9ce42f7a4028acb1bcfe30d25f
 def decode_json(request):
   data = request.json
   return data
@@ -102,6 +121,7 @@ def detect():
     # ! Can't find user_ip
 
     
+<<<<<<< HEAD
     isMalicious = perform_inference_sup(validated_flow_data)
     ip_label_tuple = list(zip(origin_ip_series.values, isMalicious))
     # ip_malic_df = pd.DataFrame(ip_label_tuple, columns=["origin_ip", "Labels"])
@@ -115,6 +135,12 @@ def detect():
         "origin_ip": list(origin_ip_series),
         "Label": isMalicious_list
     }), 200
+=======
+    
+    # result = model.predict(park_img, classes=3, conf = 0.4, save=True, verbose=False)
+    # ill_result = model.predict(ill_park_img, classes=3, conf = 0.5, save=False , verbose =False)
+    return jsonify({"isMalicious": isMalicious}), 200
+>>>>>>> 2701786c7157aa9ce42f7a4028acb1bcfe30d25f
   
 
 if __name__ == '__main__':

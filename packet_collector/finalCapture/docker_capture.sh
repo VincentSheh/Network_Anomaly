@@ -9,11 +9,25 @@ usage() {
 }
 
 csvFolder="output"    
-while getopts hf: flag
+host_ip="192.168.50.30" #Ingress-nginx external IP
+excluded_ips=("192.168.50.54" "192.168.50.228")
+
+filter_condition="host $host_ip"
+for ip in "${excluded_ips[@]}"; do
+    # if [ -z "$filter_condition"]; then
+    #     filter_condition+="not host $ip"
+    # else
+        filter_condition+=" and not host $ip"
+    # fi
+done    
+filter_condition="host 192.168.50.12 and (host 192.168.50.211 || host 192.168.50.181)"
+while getopts hfic: flag
 do
     case "${flag}" in
         h) usage;;
         f) csvFolder=${OPTARG};;
+        i) host_ip=${OPTARG};;
+        c) filter_condition=${OPTARG}
     esac
 done
 csvFolder=$(pwd)/${csvFolder}
@@ -42,21 +56,10 @@ while true; do #TODO: Change this to a list of duration
     # Loop over each interface and start tcpdump in the background
     # host_ip="172.16.189.72" #Ingress-nginx
     # host_ip="172.16.189.71" #Metallb
-    host_ip="192.168.50.30" #Ingress-nginx external IP
     # Insert the kubernetes IPs here
     # excluded_ips=("10.96.0.1" "172.16.189.73" "172.16.166.128" "172.16.235.129" "192.168.50.228")
     # excluded_ips=("10.96.0.1" "172.16.189.73" "172.16.166.128" "172.16.235.129")
-    excluded_ips=("192.168.50.54" "192.168.50.228")
 
-    filter_condition="host $host_ip"
-    for ip in "${excluded_ips[@]}"; do
-        # if [ -z "$filter_condition"]; then
-        #     filter_condition+="not host $ip"
-        # else
-            filter_condition+=" and not host $ip"
-        # fi
-    done    
-    filter_condition="host 192.168.50.54 and (host 192.168.50.211 || host 192.168.50.181)"
     # filter_condition="host 192.168.50.12 and host 192.168.50.181"
 
     # for intf in "${netInterfaces[@]}"; do
@@ -78,13 +81,13 @@ while true; do #TODO: Change this to a list of duration
     rm -f capture_*.pcap
     name="$(date +%Y%m%d%H%M%S)"
     filename="capture_$name.pcap"
-    timeout "$duration" tcpdump -i enp0s3 "$filter_condition" -w "$filename"
+    timeout "$duration" tcpdump -i wlo1 "$filter_condition" -w "$filename"
     wait
     echo "Pcap files created $filename"
 
     # TODO: Obtain the IP of the Ingress Controller and perform pass it as arguments
     # ? Using CICFlowMeter
-    ../cicflowmeter/convert_pcap_csv.sh "$filename" "$csvFolder"
+    ./cicflowmeter/convert_pcap_csv.sh "$filename" "$csvFolder"
 
 
     # sudo /home/vs/miniconda3/bin/python upload_csv.py "./cicflowmeter/$csvFolder/merged_${name}_ISCX.csv"

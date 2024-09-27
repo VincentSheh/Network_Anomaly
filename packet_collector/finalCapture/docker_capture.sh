@@ -21,7 +21,7 @@ for ip in "${excluded_ips[@]}"; do
     # fi
 done    
 filter_condition="host 192.168.50.12 and (host 192.168.50.211 || host 192.168.50.181)"
-while getopts hfic: flag
+while getopts hf:i:c: flag
 do
     case "${flag}" in
         h) usage;;
@@ -30,7 +30,6 @@ do
         c) filter_condition=${OPTARG}
     esac
 done
-csvFolder=$(pwd)/${csvFolder}
 echo $csvFolder
 # Function to handle cleanup on exit
 cleanup() {

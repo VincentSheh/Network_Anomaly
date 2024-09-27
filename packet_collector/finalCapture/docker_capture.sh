@@ -81,7 +81,7 @@ while true; do #TODO: Change this to a list of duration
     rm -f capture_*.pcap
     name="$(date +%Y%m%d%H%M%S)"
     filename="capture_$name.pcap"
-    timeout "$duration" tcpdump -i wlo1 "$filter_condition" -w "$filename"
+    timeout "$duration" tcpdump -i enp0s3 "$filter_condition" -w "$filename"
     wait
     echo "Pcap files created $filename"
 

@@ -11,7 +11,7 @@ usage() {
 csvFolder="output"    
 host_ip="192.168.50.30" #Ingress-nginx external IP
 excluded_ips=("192.168.50.54" "192.168.50.228")
-
+device=wlo1
 filter_condition="host $host_ip"
 for ip in "${excluded_ips[@]}"; do
     # if [ -z "$filter_condition"]; then
@@ -21,13 +21,14 @@ for ip in "${excluded_ips[@]}"; do
     # fi
 done    
 filter_condition="host 192.168.50.12 and (host 192.168.50.211 || host 192.168.50.181)"
-while getopts hf:i:c: flag
+while getopts hf:i:c:d: flag
 do
     case "${flag}" in
         h) usage;;
         f) csvFolder=${OPTARG};;
         i) host_ip=${OPTARG};;
-        c) filter_condition=${OPTARG}
+        c) filter_condition=${OPTARG};;
+        d) device=${OPTARG};;
     esac
 done
 echo $csvFolder
@@ -80,7 +81,7 @@ while true; do #TODO: Change this to a list of duration
     rm -f capture_*.pcap
     name="$(date +%Y%m%d%H%M%S)"
     filename="capture_$name.pcap"
-    timeout "$duration" tcpdump -i enp0s3 "$filter_condition" -w "$filename"
+    timeout "$duration" tcpdump -i ${device} "$filter_condition" -w "$filename"
     wait
     echo "Pcap files created $filename"
 

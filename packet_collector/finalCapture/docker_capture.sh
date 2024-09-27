@@ -20,7 +20,7 @@ for ip in "${excluded_ips[@]}"; do
         filter_condition+=" and not host $ip"
     # fi
 done    
-filter_condition="host 192.168.50.12 and (host 192.168.50.211 || host 192.168.50.181)"
+filter_condition="(host 192.168.50.12 || host 192.168.50.181)"
 while getopts hf:i:c:d: flag
 do
     case "${flag}" in
@@ -32,6 +32,7 @@ do
     esac
 done
 echo $csvFolder
+echo $filter_condition
 # Function to handle cleanup on exit
 cleanup() {
     echo "Caught SIGINT signal! Cleaning up..."
@@ -45,7 +46,7 @@ trap cleanup SIGINT
 while true; do #TODO: Change this to a list of duration
     local_IDS_state=0
     iter_count=0
-    duration=10
+    duration=100
     # Get all the cali network interface name
     # grepInterfaces=$(ip link show | grep -o 'cali[[:alnum:]]*')
     # readarray -t netInterfaces <<< "$grepInterfaces"

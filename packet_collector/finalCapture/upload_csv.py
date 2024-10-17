@@ -5,7 +5,7 @@ import pickle
 from io import StringIO
 import numpy as np
 import os
-
+import time
 def record_csv(result_df, file_path):
     unlabeled_df = pd.read_csv(file_path)
     unlabeled_df.to_csv("x.csv", index=False)
@@ -32,7 +32,7 @@ def retrain_lm(training_folder, url):
     print(url, files['file'])
     response = requests.post(url, files=files)
     if response.status_code == 200:
-        print("\033[32mLocal Model Started Training\033[0m")
+        print(f"\033[32mLocal Model Started Training\033[0m")
     else:
         print(f"\033[31mFailed to start training: {response.status_code} {response.text}\033[0m")
     # Flush Training Folder file
@@ -81,11 +81,10 @@ def merge_csv(file_path):
             print(f"Error reading or deleting file {full_file_path}: {e}")
 
     # Save the merged DataFrame to a new CSV file
-    final_merged_path = os.path.join(directory, "final_merged.csv")
-    full_df.to_csv(final_merged_path, index=False)
-    print(f"Merged all CSV files into {final_merged_path}")
-    
-    print(f"Merged CSV Files {path_list} in {directory}")
+    # final_merged_path = os.path.join(directory, "final_merged.csv")
+    # full_df.to_csv(final_merged_path, index=False)
+    # print(f"Merged all CSV files into {final_merged_path}")
+    # print(f"Merged CSV Files {path_list} in {directory}")
     
 def get_state_parameters(state, lm_url, gm_url):
     time_ellapsed = 0
@@ -121,9 +120,9 @@ def main():
     parser.add_argument('-t','--transition_to_on', action='store_true', help='Whether to transition from s0 to s1')
     args = parser.parse_args()
     #TODO: Query LMM for offloading URL
-    lm_url = "http://192.168.50.167:3001/"
+    lm_url = "http://192.168.50.54:30050/"
     gm_url = "http://192.168.50.167:5050/"
-
+    block_threshold = 20
     
     record_flag, url, offload_url = get_state_parameters(args.curr_state, lm_url, gm_url)
     if args.transition_to_on == True: # S0 --> S1 Transition
@@ -134,21 +133,24 @@ def main():
         send_csv(url, args.file_path, record_flag, offload_url)     
         print("\033[32mFinish Training GM\033[0m")    
     try:
-        labeled_df = send_csv(url, args.file_path, record_flag, offload_url) # TODO: if offload, incorporate the url to post request
+        labeled_df = send_csv(url, args.file_path, record_flag, offload_url) # TODO: if offload, incorportae the url to post request
+        
         if labeled_df is not None and not labeled_df.empty:
-            labeled_df.to_csv("ip_labels.csv", index=False)
+            block_list_file="malicious_ip.txt"
             malicious_ip = labeled_df.loc[labeled_df["Label"] == 1, "origin_ip"]
-            print(np.unique(malicious_ip))
-            
+            unique, counts = np.unique(malicious_ip, return_counts=True)
+    
+            # Convert to dictionary
+            ip_count_dict = dict(zip(unique, counts))            
             if len(malicious_ip) > 0:
-                for ip in np.unique(malicious_ip):
-                    print(ip)
-                    # print(f"Blocked {ip}")
-                    # os.system(f"sudo iptables -A INPUT -s {ip} -j DROP")
-                    # os.system("sudo iptables -L INPUT --line-numbers | wc -l")
+                with open(block_list_file, "w") as file:
+                    for ip, count in ip_count_dict.items():
+                        if count >= block_threshold:
+                            print(f"\033[95mBlocking {ip} with {count} occurrences\033[0m")
+                            file.write(f"{ip}\n")  # Write IP to block list file
             else:
-                print("\033[32mNo Malicious Traffic Detected\033[0m")
-            merge_csv(args.file_path)
+                print("\033[92mNo Malicious Traffic Detected\033[0m")
+            # merge_csv(args.file_path)
         else:
             print("No data returned from the server or the DataFrame is empty.")
     except Exception as e:
@@ -159,5 +161,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-    #sudo /home/vs/miniconda3/bin/python upload_csv.py /home/vs/Desktop/Network_Anomaly/packet_collector/cicflowmeter/attack/merged_20240809091837_ISCX.csv
+    #sudo python3 upload_csv.py -f ./cicflowmeter/hls_benign/final_merged.csv -s 1          
     

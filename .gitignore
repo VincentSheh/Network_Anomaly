@@ -9,3 +9,4 @@ packet_collector/cumulated.pcap
 
 *.swp
 *.log
+packet_collector/finalCapture/logs

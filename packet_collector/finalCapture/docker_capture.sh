@@ -59,6 +59,10 @@ while true; do #TODO: Change this to a list of duration
     rm -f capture_*.pcap
     name="$(date +%Y%m%d%H%M%S)"
     filename="capture_$name.pcap"
+
+    
+    start_time=$(date +%s%N) # Start Profiler
+
     timeout "$duration" tcpdump -i ${device} "$filter_condition" -w "$filename"
     wait
     echo "Pcap files created $filename"
@@ -67,8 +71,17 @@ while true; do #TODO: Change this to a list of duration
     # ? Using CICFlowMeter
     ./cicflowmeter/convert_pcap_csv.sh "$filename" "$csvFolder"
 
+    #End Profiler
+    end_time=$(date +%s%N)
+    elapsed_ns=$((end_time - start_time))
+    elapsed_ms=$((elapsed_ns / 1000000))
 
-    sudo /usr/bin/python3 upload_csv.py -f "./cicflowmeter/$csvFolder/capture_${name}_ISCX.csv" -s 1
+    echo "⏱️ Elapsed time: ${elapsed_ms} ms"
+
+    # sudo /home/vs/miniconda3/envs/edge_computing/bin/python3 upload_csv.py -f "./cicflowmeter/$csvFolder/capture_${name}_ISCX.csv" -s 1
+    /usr/bin/python3 upload_csv.py -f "./cicflowmeter/$csvFolder/capture_${name}_ISCX.csv" -s 1
+
+    
 
     # #? Update the State Machine
     # if ["$iter_count" -eq 20]; then

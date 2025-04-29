@@ -57,4 +57,5 @@ VOLUME ["/app/packetCaptureVolume"]
 RUN chmod +x /app/docker_capture.sh /app/cicflowmeter/convert_pcap_csv.sh
 
 # Set the entrypoint to run the script
-ENTRYPOINT ["/app/docker_capture.sh", "-f", "/home/vs/Desktop/packetCaptureVolume"]
+# ENTRYPOINT ["/app/docker_capture.sh", "-f", "/home/vs/Desktop/packetCaptureVolume"]
+ENTRYPOINT ["tail", "-f", "/dev/null"]
